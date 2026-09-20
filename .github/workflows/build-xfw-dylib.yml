@@ -11,7 +11,7 @@ jobs:
           SDK=$(xcrun --sdk iphoneos --show-sdk-path)
           xcrun clang -arch arm64 -dynamiclib -fobjc-arc -fobjc-weak \
             -mios-version-min=15.0 -isysroot "$SDK" \
-            -framework Foundation -framework UIKit -framework CoreGraphics -framework JavaScriptCore \
+            -framework Foundation -framework UIKit -framework CoreGraphics -framework QuartzCore -framework JavaScriptCore \
             -o XXCFloat.dylib XXCFloat.m
           ls -la XXCFloat.dylib
           otool -L XXCFloat.dylib | head -8
