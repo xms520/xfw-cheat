@@ -173,6 +173,7 @@ static void syncFlagToJS(NSString *key, BOOL val) {
 }
 
 // 前向声明
+@class FloatGlassButton;
 @interface FloatGlassPanel : UIView
 - (void)fg_close;
 - (void)refreshButtons;
@@ -389,7 +390,8 @@ static void injectTick(void) {
     for (int i = 0; i < 3; i++) {
         UIButton *btn = g_btns[i];
         NSString *name = objc_getAssociatedObject(btn, "name");
-        BOOL on = flags[i].boolValue;
+        NSNumber *num = flags[i];
+        BOOL on = num.boolValue;
         [btn setTitle:[NSString stringWithFormat:@"  %@  %@", name, on ? @"ON" : @"OFF"] forState:UIControlStateNormal];
         btn.backgroundColor = on ? [UIColor colorWithRed:0.13 green:0.55 blue:0.27 alpha:0.88]
                                  : [UIColor colorWithWhite:0.18 alpha:0.55];
