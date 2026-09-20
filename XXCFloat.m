@@ -53,6 +53,7 @@ static void seEval(NSString *js) {
     void *se = seInstance();
     if (!se || !g_eval) return;
     const char *cstr = js.UTF8String;
+    // ⚠️ len 必须是 UTF8 字节数；NSString.length 是 UTF-16 单元数，含中文时脚本会被截断
     g_eval(se, cstr, (unsigned)strlen(cstr), NULL, "XXCFloat");
 }
 
@@ -213,7 +214,10 @@ static void injectTick(void) {
     }
     NSString *js = decodeCheat();
     if (!js) { xlog(@"ERROR b64 decode"); g_injected = YES; return; }
-    bool ok = g_eval(se, js.UTF8String, (unsigned)js.length, NULL, "xxcheat.js");
+    // ⚠️ len 必须用 UTF8 字节数：js.length 是 UTF-16 单元数，含中文注释时脚本被截断 → 语法异常 → ok=0
+    const char *cstr = js.UTF8String;
+    unsigned clen = (unsigned)strlen(cstr);
+    bool ok = g_eval(se, cstr, clen, NULL, "xxcheat.js");
     // 验证：cheat.js 加载成功后写标记文件 Documents/xxcheat_injected.flag
     NSString *flagPath = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/xxcheat_injected.flag"];
     BOOL verified = [[NSFileManager defaultManager] fileExistsAtPath:flagPath];
