@@ -9,6 +9,8 @@
 
 static IMP g_origInit = NULL;
 static IMP g_origInitVM = NULL;
+static IMP g_origEval = NULL;
+static IMP g_origEvalURL = NULL;
 static NSHashTable *g_ctxs = nil;      // weak objects
 static JSContext *g_gameCtx = nil;
 static BOOL g_injected = NO;
@@ -29,13 +31,34 @@ static void xlog(NSString *fmt, ...) {
 }
 
 // ---------- swizzle hooks ----------
+// v3：主捕获点改为 -evaluateScript:（JSContext 必然覆写该自有方法，se 加载脚本必经）；
+//     init/initWithVirtualMachine: 仅当 JSContext 自有实现时才挂（防止误改 NSObject 方法表）
+static BOOL g_jsContextClsOk = NO;
+static Class g_jscClass = nil;
+
+static BOOL isOwnMethod(Class c, SEL s) {
+    Method m = class_getInstanceMethod(c, s);
+    if (!m) return NO;
+    return method_getImplementation(m) != class_getMethodImplementation([NSObject class], s);
+}
+
+static id hookedEval(id self, SEL _cmd, NSString *script) {
+    id r = ((id (*)(id, SEL, NSString *))g_origEval)(self, _cmd, script);
+    if (g_active && g_jscClass && [self isKindOfClass:g_jscClass]) [g_ctxs addObject:self];
+    return r;
+}
+static id hookedEvalURL(id self, SEL _cmd, NSString *script, NSURL *url) {
+    id r = ((id (*)(id, SEL, NSString *, NSURL *))g_origEvalURL)(self, _cmd, script, url);
+    if (g_active && g_jscClass && [self isKindOfClass:g_jscClass]) [g_ctxs addObject:self];
+    return r;
+}
 static void hookedInit(id self, SEL _cmd) {
     if (g_origInit) ((void (*)(id, SEL))g_origInit)(self, _cmd);
-    if (g_active) [g_ctxs addObject:self];
+    if (g_active && g_jscClass && [self isKindOfClass:g_jscClass]) [g_ctxs addObject:self];
 }
 static id hookedInitVM(id self, SEL _cmd, JSVirtualMachine *vm) {
     id r = ((id (*)(id, SEL, JSVirtualMachine *))g_origInitVM)(self, _cmd, vm);
-    if (g_active) [g_ctxs addObject:self];
+    if (g_active && g_jscClass && [self isKindOfClass:g_jscClass]) [g_ctxs addObject:self];
     return r;
 }
 
@@ -255,7 +278,11 @@ static void tryInject(void) {
                     }
                 } @catch (NSException *e) { /* 广告等其它 context */ }
             }
-            if (!g_gameCtx) return;
+            if (!g_gameCtx) {
+                static int st = 0;
+                if (++st % 10 == 0) xlog(@"status: waiting, ctxs=%lu", (unsigned long)g_ctxs.count);
+                return;
+            }
         }
         if (g_injected) return;
         NSString *js = decodeCheat();
@@ -289,13 +316,40 @@ __attribute__((constructor)) static void XXCDylibMain(void) {
         xlog(@"dylib loaded bid=%@ exe=%@", bid, exe);
 
         g_ctxs = [NSHashTable weakObjectsHashTable];
-        Class c = objc_getClass("JSContext");
-        Method m1 = class_getInstanceMethod(c, @selector(init));
-        g_origInit = method_getImplementation(m1);
-        method_setImplementation(m1, (IMP)hookedInit);
-        Method m2 = class_getInstanceMethod(c, @selector(initWithVirtualMachine:));
-        g_origInitVM = method_getImplementation(m2);
-        method_setImplementation(m2, (IMP)hookedInitVM);
+        g_jscClass = objc_getClass("JSContext");
+        g_jsContextClsOk = (g_jscClass != nil);
+        if (!g_jsContextClsOk) { xlog(@"ERROR JSContext class not found"); return; }
+
+        // 主捕获：evaluateScript:（自有方法，必覆写）
+        Method me = class_getInstanceMethod(g_jscClass, @selector(evaluateScript:));
+        if (me && isOwnMethod(g_jscClass, @selector(evaluateScript:))) {
+            g_origEval = method_getImplementation(me);
+            method_setImplementation(me, (IMP)hookedEval);
+            xlog(@"hook evaluateScript: ok");
+        } else {
+            xlog(@"WARN evaluateScript: not own method, skip");
+        }
+        Method meu = class_getInstanceMethod(g_jscClass, @selector(evaluateScript:withSourceURL:));
+        if (meu && isOwnMethod(g_jscClass, @selector(evaluateScript:withSourceURL:))) {
+            g_origEvalURL = method_getImplementation(meu);
+            method_setImplementation(meu, (IMP)hookedEvalURL);
+            xlog(@"hook evaluateScript:withSourceURL: ok");
+        }
+        // 辅捕获：init 家族（仅自有实现才挂，防误改 NSObject 表）
+        Method m1 = class_getInstanceMethod(g_jscClass, @selector(init));
+        if (m1 && isOwnMethod(g_jscClass, @selector(init))) {
+            g_origInit = method_getImplementation(m1);
+            method_setImplementation(m1, (IMP)hookedInit);
+            xlog(@"hook init ok");
+        } else {
+            xlog(@"skip init hook (inherited)");
+        }
+        Method m2 = class_getInstanceMethod(g_jscClass, @selector(initWithVirtualMachine:));
+        if (m2 && isOwnMethod(g_jscClass, @selector(initWithVirtualMachine:))) {
+            g_origInitVM = method_getImplementation(m2);
+            method_setImplementation(m2, (IMP)hookedInitVM);
+            xlog(@"hook initWithVirtualMachine: ok");
+        }
 
         dispatch_async(dispatch_get_main_queue(), ^{
             [NSTimer scheduledTimerWithTimeInterval:1.0 repeats:YES block:^(NSTimer *t) {
