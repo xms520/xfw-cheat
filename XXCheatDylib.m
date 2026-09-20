@@ -268,19 +268,30 @@ static NSString *decodeCheat(void) {
 static void tryInject(void) {
     @autoreleasepool {
         if (!g_gameCtx) {
-            for (JSContext *c in g_ctxs.allObjects) {
+            static int st = 0;
+            st++;
+            NSArray *all = g_ctxs.allObjects;
+            BOOL waitingLogged = (st % 3 == 0);
+            for (JSContext *c in all) {
                 @try {
-                    JSValue *r = [c evaluateScript:@"(typeof jsb==='object')&&(typeof System==='object')"];
-                    if (r.isBoolean && r.toBool) {
+                    JSValue *r1 = [c evaluateScript:@"typeof jsb"];
+                    JSValue *r2 = [c evaluateScript:@"typeof System"];
+                    BOOL hasJsb = r1.isString && [r1.toString isEqualToString:@"object"];
+                    BOOL hasSys = r2.isString && [r2.toString isEqualToString:@"object"];
+                    if (waitingLogged)
+                        xlog(@"waiting#%d ctx=%p jsb=%@ sys=%@ inj=%d", st, c,
+                             r1.isString ? r1.toString : @"(other)", r2.isString ? r2.toString : @"(other)", g_injected);
+                    if (hasJsb) {   // jsb 是 se 专有全局，存在即锁定（System 可以后定义，cheat 内部自行等待）
                         g_gameCtx = c;
-                        xlog(@"game ctx found: %@ size=%lu", c, (unsigned long)g_ctxs.count);
+                        xlog(@"game ctx found (jsb): %p total=%lu", c, (unsigned long)all.count);
                         break;
                     }
-                } @catch (NSException *e) { /* 广告等其它 context */ }
+                } @catch (NSException *e) {
+                    if (waitingLogged) xlog(@"waiting#%d ctx=%p exc=%@", st, c, e.name);
+                }
             }
             if (!g_gameCtx) {
-                static int st = 0;
-                if (++st % 10 == 0) xlog(@"status: waiting, ctxs=%lu", (unsigned long)g_ctxs.count);
+                if (waitingLogged && all.count == 0) xlog(@"waiting#%d no ctx yet", st);
                 return;
             }
         }
