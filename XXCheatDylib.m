@@ -248,7 +248,7 @@ static void tryInject(void) {
             for (JSContext *c in g_ctxs.allObjects) {
                 @try {
                     JSValue *r = [c evaluateScript:@"(typeof jsb==='object')&&(typeof System==='object')"];
-                    if (r.isBoolean && r.boolValue) {
+                    if (r.isBoolean && r.toBool) {
                         g_gameCtx = c;
                         xlog(@"game ctx found: %@ size=%lu", c, (unsigned long)g_ctxs.count);
                         break;
