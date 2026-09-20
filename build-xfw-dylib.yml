@@ -1,0 +1,21 @@
+name: build-xfw-dylib
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build XXCheat.dylib (arm64)
+        run: |
+          SDK=$(xcrun --sdk iphoneos --show-sdk-path)
+          xcrun clang -arch arm64 -dynamiclib -fobjc-arc -fobjc-weak \
+            -mios-version-min=15.0 -isysroot "$SDK" \
+            -framework Foundation -framework JavaScriptCore \
+            -o XXCheat.dylib XXCheatDylib.m
+          ls -la XXCheat.dylib
+          otool -L XXCheat.dylib | head -8
+      - uses: actions/upload-artifact@v4
+        with:
+          name: XXCheat-dylib
+          path: XXCheat.dylib
