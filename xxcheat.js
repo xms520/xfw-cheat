@@ -36,13 +36,14 @@
     }
 
     // ---------- 标志（native 面板运行时覆盖） ----------
-    // kill/inv/ad: bool；cd: 攻速挡位 0-3；eng: 变速挡位 0-3
+    // kill/inv/ad: bool；cd: 攻速挡位 0-4；eng: 变速挡位 0-3
+    // ⚠️ 默认全关：native 不再持久化恢复功能开关，仅卡密持久化
     var F = {
-        kill: lsGet('kill') === '1',
-        inv:  lsGet('inv') === '1',
-        ad:   lsGet('ad') === '1',
-        cd:   parseInt(lsGet('cd') || '0', 10) || 0,
-        eng:  parseInt(lsGet('eng') || '0', 10) || 0
+        kill: false,
+        inv:  false,
+        ad:   false,
+        cd:   0,
+        eng:  0
     };
     var CD_MUL  = [1, 0.5, 0.25, 0.125, 0.0625]; // OFF/x2/x4/x8/x16
     var ENG_MUL = [1, 2, 4, 8];          // OFF/x2/x4/x8
@@ -131,7 +132,7 @@
         var oFree = BM.prototype.onFree;
         BM.prototype.onFree = function () { MONS.delete(this); return oFree.apply(this, arguments); };
         log('kill track ok');
-        // ---- 攻速（挡位）：同时压 CD 与施法时长（英雄普攻节奏=CD+施法动画，只压CD动画会封顶）
+        // ---- 攻速（挡位）：压 CD；⚠️ getSkillReleaseTime 不压（它是 Release 态看门狗，压小了技能未释放就被回收） ----
         var BS = CLS.skill;
         var oCD = BS.prototype.getSkillCD;
         BS.prototype.getSkillCD = function () {
@@ -139,14 +140,38 @@
             if (cdMul > 1 && (!this._src || this._src.roleType !== ROLE_MONSTER)) v = v * cdMul;
             return v;
         };
-        var oRel = BS.prototype.getSkillReleaseTime;
-        BS.prototype.getSkillReleaseTime = function () {
-            var v = oRel.call(this);
-            if (cdMul > 1 && (!this._src || this._src.roleType !== ROLE_MONSTER) && v > 0) v = v * cdMul;
-            return v;
-        };
+        // 英雄/主角色施法动画加速：wrap 基类 playSkillCasting（子类必经），施法时 spine 提速，playIdle 恢复
+        // （英雄普攻节奏 = CD + spine 动画时长，动画不加速则攻速被封顶）
+        var ROLE_VIEWS = [CLS.herov, CLS.mainv];
+        ROLE_VIEWS.forEach(function (V) {
+            if (!V || !V.prototype) return;
+            var psc = V.prototype.playSkillCasting;
+            if (psc) {
+                V.prototype.playSkillCasting = function (a, cb, t) {
+                    var r = psc.call(this, a, cb, t);
+                    // HeroView 单/多段动作都在 playSkillCasting 内部播放：提速
+                    try {
+                        var base = (this.entity && this.entity.getTimeScale) ? this.entity.getTimeScale() : 1;
+                        if (this.spine) this.spine.timeScale = base * cdMul;
+                        if (this.skillAnimateSpines) this.skillAnimateSpines.forEach(function (s) { s.timeScale = base * cdMul; });
+                    } catch (e) {}
+                    return r;
+                };
+            }
+            var pi = V.prototype.playIdle;
+            if (pi) {
+                V.prototype.playIdle = function () {
+                    try {
+                        var base = (this.entity && this.entity.getTimeScale) ? this.entity.getTimeScale() : 1;
+                        if (this.spine) this.spine.timeScale = base;
+                        if (this.skillAnimateSpines) this.skillAnimateSpines.forEach(function (s) { s.timeScale = base; });
+                    } catch (e) {}
+                    return pi.apply(this, arguments);
+                };
+            }
+        });
         updateCdMul();
-        log('cd patch ok (CD+release)');
+        log('cd patch ok (CD + anim speed)');
         // ---- 免广告 ----
         var chan = CLS.chan && CLS.chan.Channel;
         if (chan) {
