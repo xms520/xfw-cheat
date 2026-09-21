@@ -83,7 +83,10 @@
         ['rec',     MOD + 'BattleRecordPlugin.ts',   'BattleRecordPlugin'],
         ['chan',    MOD + 'ChannelCtrl.ts',          'channelCtrl'],
         ['herov',   MOD + 'BattleHeroView.ts',       'BattleHeroView'],
-        ['mainv',   MOD + 'BattleMainRoleView.ts',   'BattleMainRoleView']
+        ['mainv',   MOD + 'BattleMainRoleView.ts',   'BattleMainRoleView'],
+        ['hotview', MOD + 'HotUpdateView.ts',        'HotUpdateView'],
+        ['loginl',  MOD + 'LoginLayer.ts',           'LoginLayer'],
+        ['evtmgr',  MOD + 'EventMgr.ts',             'eventMgr']
     ];
     var CLS = {};
     function getNs(key, exp) {
@@ -172,6 +175,19 @@
         });
         updateCdMul();
         log('cd patch ok (CD + anim speed)');
+        // ---- 修"更新失败"：CDN 已 404，跳过热更检查直接进游戏 ----
+        // HotUpdateView.checkUpdate → 不发远端检查，直接 emit HotUpdateComplete（原 ALREADY_UP_TO_DATE 分支行为）
+        try {
+            var HV = CLS.hotview;
+            var EM = CLS.evtmgr;
+            if (HV && HV.prototype) {
+                HV.prototype.checkUpdate = function () {
+                    log('hotupdate skipped -> goto game');
+                    try { if (EM) EM.emit('HotUpdateComplete'); } catch (e) { log('emit exc', e); }
+                };
+                log('hotupdate patch ok');
+            }
+        } catch (e) { log('hotupdate patch exc', e); }
         // ---- 免广告 ----
         var chan = CLS.chan && CLS.chan.Channel;
         if (chan) {

@@ -119,143 +119,155 @@ static const char *g_cheatB64 =
     "b3JkUGx1Z2luJ10sCiAgICAgICAgWydjaGFuJywgICAgTU9EICsgJ0NoYW5uZWxDdHJsLnRzJywgICAgICAgICAgJ2NoYW5u"
     "ZWxDdHJsJ10sCiAgICAgICAgWydoZXJvdicsICAgTU9EICsgJ0JhdHRsZUhlcm9WaWV3LnRzJywgICAgICAgJ0JhdHRsZUhl"
     "cm9WaWV3J10sCiAgICAgICAgWydtYWludicsICAgTU9EICsgJ0JhdHRsZU1haW5Sb2xlVmlldy50cycsICAgJ0JhdHRsZU1h"
-    "aW5Sb2xlVmlldyddCiAgICBdOwogICAgdmFyIENMUyA9IHt9OwogICAgZnVuY3Rpb24gZ2V0TnMoa2V5LCBleHApIHsKICAg"
-    "ICAgICB0cnkgewogICAgICAgICAgICB2YXIgbnMgPSBTeXN0ZW0uZ2V0KGtleSk7CiAgICAgICAgICAgIHJldHVybiAobnMg"
-    "JiYgbnNbZXhwXSkgPyBuc1tleHBdIDogbnVsbDsKICAgICAgICB9IGNhdGNoIChlKSB7IHJldHVybiBudWxsOyB9CiAgICB9"
-    "CiAgICB2YXIgcGF0Y2hEb25lID0gZmFsc2U7CiAgICBmdW5jdGlvbiB0cnlQYXRjaCgpIHsKICAgICAgICB2YXIgb2sgPSB0"
-    "cnVlOwogICAgICAgIGZvciAodmFyIGkgPSAwOyBpIDwgTkVFRC5sZW5ndGg7IGkrKykgewogICAgICAgICAgICB2YXIgaXQg"
-    "PSBORUVEW2ldOwogICAgICAgICAgICBpZiAoIUNMU1tpdFswXV0pIHsKICAgICAgICAgICAgICAgIHZhciBjID0gZ2V0TnMo"
-    "aXRbMV0sIGl0WzJdKTsKICAgICAgICAgICAgICAgIGlmIChjKSBDTFNbaXRbMF1dID0gYzsgZWxzZSBvayA9IGZhbHNlOwog"
-    "ICAgICAgICAgICB9CiAgICAgICAgfQogICAgICAgIGlmICghb2spIHJldHVybiBmYWxzZTsKICAgICAgICBpZiAocGF0Y2hE"
-    "b25lKSByZXR1cm4gdHJ1ZTsKICAgICAgICBwYXRjaERvbmUgPSB0cnVlOwogICAgICAgIGRvUGF0Y2goKTsKICAgICAgICBy"
-    "ZXR1cm4gdHJ1ZTsKICAgIH0KCiAgICB2YXIgTU9OUyA9IG5ldyBTZXQoKTsKICAgIHZhciBST0xFX01PTlNURVIgPSAzOyAv"
-    "LyBCYXR0bGVSb2xlVHlwZS5Nb25zdGVyCiAgICB2YXIgU1RfRElFID0gMzsgICAgICAgLy8gTW9uc3RlclN0YXRlRW51bS5E"
-    "aWUKICAgIHZhciBlbmdpbmVTcGRPayA9IGZhbHNlOyAgIC8vIOW8leaTjue6p+WPmOmAn+aYr+WQpuaMguS4iu+8iOaMguS4"
-    "iuWImeaImOaWl+WGheS4jemHjeWkjeWKoOmAn++8iQogICAgdmFyIGxhc3RCYXR0bGUgPSBudWxsOwogICAgdmFyIGNkTXVs"
-    "ID0gMTsgICAgICAgICAgICAgLy8g5b2T5YmN5pS76YCf5YCN546H57yT5a2YCgogICAgZnVuY3Rpb24gdXBkYXRlQ2RNdWwo"
-    "KSB7IGNkTXVsID0gQ0RfTVVMW0YuY2RdIHx8IDE7IH0KCiAgICBmdW5jdGlvbiBkb1BhdGNoKCkgewogICAgICAgIC8vIC0t"
-    "LS0g5peg5pWMIC0tLS0KICAgICAgICB3cmFwSHAoQ0xTLmJhc2UpOyB3cmFwSHAoQ0xTLndhbGwpOyB3cmFwSHAoQ0xTLmxp"
-    "ZmUpOwogICAgICAgIGxvZygnaW52IHBhdGNoIG9rJyk7CiAgICAgICAgLy8gLS0tLSDnp5LmnYDot5/ouKogLS0tLQogICAg"
-    "ICAgIHZhciBCTSA9IENMUy5tb25zdGVyOwogICAgICAgIHZhciBvSW5pdCA9IEJNLnByb3RvdHlwZS5pbml0OwogICAgICAg"
-    "IEJNLnByb3RvdHlwZS5pbml0ID0gZnVuY3Rpb24gKCkgewogICAgICAgICAgICB0cnkgeyB0aGlzLl9feGZ3S2lsbGVkID0g"
-    "MDsgTU9OUy5hZGQodGhpcyk7IH0gY2F0Y2ggKGUpIHt9CiAgICAgICAgICAgIHJldHVybiBvSW5pdC5hcHBseSh0aGlzLCBh"
-    "cmd1bWVudHMpOwogICAgICAgIH07CiAgICAgICAgdmFyIG9GcmVlID0gQk0ucHJvdG90eXBlLm9uRnJlZTsKICAgICAgICBC"
-    "TS5wcm90b3R5cGUub25GcmVlID0gZnVuY3Rpb24gKCkgeyBNT05TLmRlbGV0ZSh0aGlzKTsgcmV0dXJuIG9GcmVlLmFwcGx5"
-    "KHRoaXMsIGFyZ3VtZW50cyk7IH07CiAgICAgICAgbG9nKCdraWxsIHRyYWNrIG9rJyk7CiAgICAgICAgLy8gLS0tLSDmlLvp"
-    "gJ/vvIjmjKHkvY3vvInvvJrljosgQ0TvvJvimqDvuI8gZ2V0U2tpbGxSZWxlYXNlVGltZSDkuI3ljovvvIjlroPmmK8gUmVs"
-    "ZWFzZSDmgIHnnIvpl6jni5fvvIzljovlsI/kuobmioDog73mnKrph4rmlL7lsLHooqvlm57mlLbvvIkgLS0tLQogICAgICAg"
-    "IHZhciBCUyA9IENMUy5za2lsbDsKICAgICAgICB2YXIgb0NEID0gQlMucHJvdG90eXBlLmdldFNraWxsQ0Q7CiAgICAgICAg"
-    "QlMucHJvdG90eXBlLmdldFNraWxsQ0QgPSBmdW5jdGlvbiAoKSB7CiAgICAgICAgICAgIHZhciB2ID0gb0NELmNhbGwodGhp"
-    "cyk7CiAgICAgICAgICAgIGlmIChjZE11bCA+IDEgJiYgKCF0aGlzLl9zcmMgfHwgdGhpcy5fc3JjLnJvbGVUeXBlICE9PSBS"
-    "T0xFX01PTlNURVIpKSB2ID0gdiAqIGNkTXVsOwogICAgICAgICAgICByZXR1cm4gdjsKICAgICAgICB9OwogICAgICAgIC8v"
-    "IOiLsembhC/kuLvop5LoibLmlr3ms5XliqjnlLvliqDpgJ/vvJp3cmFwIOWfuuexuyBwbGF5U2tpbGxDYXN0aW5n77yI5a2Q"
-    "57G75b+F57uP77yJ77yM5pa95rOV5pe2IHNwaW5lIOaPkOmAn++8jHBsYXlJZGxlIOaBouWkjQogICAgICAgIC8vIO+8iOiL"
-    "sembhOaZruaUu+iKguWljyA9IENEICsgc3BpbmUg5Yqo55S75pe26ZW/77yM5Yqo55S75LiN5Yqg6YCf5YiZ5pS76YCf6KKr"
-    "5bCB6aG277yJCiAgICAgICAgdmFyIFJPTEVfVklFV1MgPSBbQ0xTLmhlcm92LCBDTFMubWFpbnZdOwogICAgICAgIFJPTEVf"
-    "VklFV1MuZm9yRWFjaChmdW5jdGlvbiAoVikgewogICAgICAgICAgICBpZiAoIVYgfHwgIVYucHJvdG90eXBlKSByZXR1cm47"
-    "CiAgICAgICAgICAgIHZhciBwc2MgPSBWLnByb3RvdHlwZS5wbGF5U2tpbGxDYXN0aW5nOwogICAgICAgICAgICBpZiAocHNj"
-    "KSB7CiAgICAgICAgICAgICAgICBWLnByb3RvdHlwZS5wbGF5U2tpbGxDYXN0aW5nID0gZnVuY3Rpb24gKGEsIGNiLCB0KSB7"
-    "CiAgICAgICAgICAgICAgICAgICAgdmFyIHIgPSBwc2MuY2FsbCh0aGlzLCBhLCBjYiwgdCk7CiAgICAgICAgICAgICAgICAg"
-    "ICAgLy8gSGVyb1ZpZXcg5Y2VL+WkmuauteWKqOS9nOmDveWcqCBwbGF5U2tpbGxDYXN0aW5nIOWGhemDqOaSreaUvu+8muaP"
-    "kOmAnwogICAgICAgICAgICAgICAgICAgIHRyeSB7CiAgICAgICAgICAgICAgICAgICAgICAgIHZhciBiYXNlID0gKHRoaXMu"
-    "ZW50aXR5ICYmIHRoaXMuZW50aXR5LmdldFRpbWVTY2FsZSkgPyB0aGlzLmVudGl0eS5nZXRUaW1lU2NhbGUoKSA6IDE7CiAg"
-    "ICAgICAgICAgICAgICAgICAgICAgIGlmICh0aGlzLnNwaW5lKSB0aGlzLnNwaW5lLnRpbWVTY2FsZSA9IGJhc2UgKiBjZE11"
-    "bDsKICAgICAgICAgICAgICAgICAgICAgICAgaWYgKHRoaXMuc2tpbGxBbmltYXRlU3BpbmVzKSB0aGlzLnNraWxsQW5pbWF0"
-    "ZVNwaW5lcy5mb3JFYWNoKGZ1bmN0aW9uIChzKSB7IHMudGltZVNjYWxlID0gYmFzZSAqIGNkTXVsOyB9KTsKICAgICAgICAg"
-    "ICAgICAgICAgICB9IGNhdGNoIChlKSB7fQogICAgICAgICAgICAgICAgICAgIHJldHVybiByOwogICAgICAgICAgICAgICAg"
-    "fTsKICAgICAgICAgICAgfQogICAgICAgICAgICB2YXIgcGkgPSBWLnByb3RvdHlwZS5wbGF5SWRsZTsKICAgICAgICAgICAg"
-    "aWYgKHBpKSB7CiAgICAgICAgICAgICAgICBWLnByb3RvdHlwZS5wbGF5SWRsZSA9IGZ1bmN0aW9uICgpIHsKICAgICAgICAg"
-    "ICAgICAgICAgICB0cnkgewogICAgICAgICAgICAgICAgICAgICAgICB2YXIgYmFzZSA9ICh0aGlzLmVudGl0eSAmJiB0aGlz"
-    "LmVudGl0eS5nZXRUaW1lU2NhbGUpID8gdGhpcy5lbnRpdHkuZ2V0VGltZVNjYWxlKCkgOiAxOwogICAgICAgICAgICAgICAg"
-    "ICAgICAgICBpZiAodGhpcy5zcGluZSkgdGhpcy5zcGluZS50aW1lU2NhbGUgPSBiYXNlOwogICAgICAgICAgICAgICAgICAg"
-    "ICAgICBpZiAodGhpcy5za2lsbEFuaW1hdGVTcGluZXMpIHRoaXMuc2tpbGxBbmltYXRlU3BpbmVzLmZvckVhY2goZnVuY3Rp"
-    "b24gKHMpIHsgcy50aW1lU2NhbGUgPSBiYXNlOyB9KTsKICAgICAgICAgICAgICAgICAgICB9IGNhdGNoIChlKSB7fQogICAg"
-    "ICAgICAgICAgICAgICAgIHJldHVybiBwaS5hcHBseSh0aGlzLCBhcmd1bWVudHMpOwogICAgICAgICAgICAgICAgfTsKICAg"
-    "ICAgICAgICAgfQogICAgICAgIH0pOwogICAgICAgIHVwZGF0ZUNkTXVsKCk7CiAgICAgICAgbG9nKCdjZCBwYXRjaCBvayAo"
-    "Q0QgKyBhbmltIHNwZWVkKScpOwogICAgICAgIC8vIC0tLS0g5YWN5bm/5ZGKIC0tLS0KICAgICAgICB2YXIgY2hhbiA9IENM"
-    "Uy5jaGFuICYmIENMUy5jaGFuLkNoYW5uZWw7CiAgICAgICAgaWYgKGNoYW4pIHsKICAgICAgICAgICAgY2hhbi5jcmVhdGVS"
-    "ZXdhcmRlZFZpZGVvQWQgPSBmdW5jdGlvbiAoaWQsIHN1Y2Nlc3NjYiwgZmFpbGNiKSB7CiAgICAgICAgICAgICAgICBpZiAo"
-    "Ri5hZCkgeyB0cnkgeyBzdWNjZXNzY2IgJiYgc3VjY2Vzc2NiKCk7IH0gY2F0Y2ggKGUpIHsgbG9nKCdhZCBjYiBleGMnLCBl"
-    "KTsgfSByZXR1cm47IH0KICAgICAgICAgICAgICAgIHZhciBwID0gT2JqZWN0LmdldFByb3RvdHlwZU9mKGNoYW4pOwogICAg"
-    "ICAgICAgICAgICAgaWYgKHAgJiYgcC5jcmVhdGVSZXdhcmRlZFZpZGVvQWQgJiYgcC5jcmVhdGVSZXdhcmRlZFZpZGVvQWQg"
-    "IT09IGFyZ3VtZW50cy5jYWxsZWUpIHsKICAgICAgICAgICAgICAgICAgICByZXR1cm4gcC5jcmVhdGVSZXdhcmRlZFZpZGVv"
-    "QWQuY2FsbCh0aGlzLCBpZCwgc3VjY2Vzc2NiLCBmYWlsY2IpOwogICAgICAgICAgICAgICAgfQogICAgICAgICAgICAgICAg"
-    "dHJ5IHsgc3VjY2Vzc2NiICYmIHN1Y2Nlc3NjYigpOyB9IGNhdGNoIChlKSB7IGxvZygnYWQgY2IyIGV4YycsIGUpOyB9CiAg"
-    "ICAgICAgICAgIH07CiAgICAgICAgICAgIGxvZygnYWQgcGF0Y2ggb2snKTsKICAgICAgICB9IGVsc2UgewogICAgICAgICAg"
-    "ICBsb2coJ1dBUk4gY2hhbm5lbCBub3QgZm91bmQsIGFkIHBhdGNoIHNraXAnKTsKICAgICAgICB9CiAgICB9CgogICAgZnVu"
-    "Y3Rpb24gd3JhcEhwKGNscykgewogICAgICAgIHZhciBkID0gT2JqZWN0LmdldE93blByb3BlcnR5RGVzY3JpcHRvcihjbHMu"
-    "cHJvdG90eXBlLCAnaHAnKTsKICAgICAgICBpZiAoIWQgfHwgIWQuc2V0KSB7IGxvZygnd3JhcEhwIEZBSUwnLCBjbHMgJiYg"
-    "Y2xzLm5hbWUpOyByZXR1cm47IH0KICAgICAgICB2YXIgb3JpZyA9IGQuc2V0OwogICAgICAgIE9iamVjdC5kZWZpbmVQcm9w"
-    "ZXJ0eShjbHMucHJvdG90eXBlLCAnaHAnLCB7CiAgICAgICAgICAgIGdldDogZC5nZXQsCiAgICAgICAgICAgIHNldDogZnVu"
-    "Y3Rpb24gKHYpIHsKICAgICAgICAgICAgICAgIGlmIChGLmludiAmJiB0aGlzLl9ocCA+IDAgJiYgdiA8IHRoaXMuX2hwICYm"
-    "IHRoaXMuX3JvbGVUeXBlICE9PSBST0xFX01PTlNURVIpIHJldHVybjsKICAgICAgICAgICAgICAgIG9yaWcuY2FsbCh0aGlz"
-    "LCB2KTsKICAgICAgICAgICAgfSwKICAgICAgICAgICAgY29uZmlndXJhYmxlOiB0cnVlLAogICAgICAgICAgICBlbnVtZXJh"
-    "YmxlOiBmYWxzZQogICAgICAgIH0pOwogICAgfQoKICAgIC8vIC0tLS0tLS0tLS0g5byV5pOO57qn5Y+Y6YCf77yIY2MuZ2Ft"
-    "ZS5fY2FsY3VsYXRlRFTvvIzlrp7kvovmlrnms5XpnZ4gcHJvdG90eXBl77yJIC0tLS0tLS0tLS0KICAgIGZ1bmN0aW9uIGVu"
-    "Z2luZVBhdGNoKCkgewogICAgICAgIFN5c3RlbS5pbXBvcnQoJ2NjJykudGhlbihmdW5jdGlvbiAoY2MpIHsKICAgICAgICAg"
-    "ICAgdHJ5IHsKICAgICAgICAgICAgICAgIHZhciBnID0gY2MuZ2FtZTsKICAgICAgICAgICAgICAgIC8vIDMuOC54OiBjYy5n"
-    "YW1lIOaYryBEaXJlY3RvciDlrp7kvovvvIhtYWluTG9vcCDph4wgby5nYW1lLl9jYWxjdWxhdGVEVCghMSnvvIkKICAgICAg"
-    "ICAgICAgICAgIGlmIChnICYmIHR5cGVvZiBnLl9jYWxjdWxhdGVEVCA9PT0gJ2Z1bmN0aW9uJykgewogICAgICAgICAgICAg"
-    "ICAgICAgIHZhciBvQ2FsYyA9IGcuX2NhbGN1bGF0ZURULmJpbmQoZyk7CiAgICAgICAgICAgICAgICAgICAgZy5fY2FsY3Vs"
-    "YXRlRFQgPSBmdW5jdGlvbiAodCkgewogICAgICAgICAgICAgICAgICAgICAgICB2YXIgZHQgPSBvQ2FsYyh0KTsKICAgICAg"
-    "ICAgICAgICAgICAgICAgICAgaWYgKEYuZW5nID4gMCkgZHQgKj0gRU5HX01VTFtGLmVuZ107CiAgICAgICAgICAgICAgICAg"
-    "ICAgICAgIHJldHVybiBkdDsKICAgICAgICAgICAgICAgICAgICB9OwogICAgICAgICAgICAgICAgICAgIGVuZ2luZVNwZE9r"
-    "ID0gdHJ1ZTsKICAgICAgICAgICAgICAgICAgICBsb2coJ2VuZ2luZSBzcGQgcGF0Y2ggb2sgKGdhbWUuX2NhbGN1bGF0ZURU"
-    "KScpOwogICAgICAgICAgICAgICAgICAgIHJldHVybjsKICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgIC8vIOWF"
-    "nOW6le+8mkRpcmVjdG9yLnByb3RvdHlwZSDkuIrmib4KICAgICAgICAgICAgICAgIHZhciBEID0gY2MuRGlyZWN0b3I7CiAg"
-    "ICAgICAgICAgICAgICBpZiAoRCAmJiBELnByb3RvdHlwZSAmJiBELnByb3RvdHlwZS5fY2FsY3VsYXRlRFQpIHsKICAgICAg"
-    "ICAgICAgICAgICAgICB2YXIgb0NhbGMyID0gRC5wcm90b3R5cGUuX2NhbGN1bGF0ZURUOwogICAgICAgICAgICAgICAgICAg"
-    "IEQucHJvdG90eXBlLl9jYWxjdWxhdGVEVCA9IGZ1bmN0aW9uICgpIHsKICAgICAgICAgICAgICAgICAgICAgICAgdmFyIGR0"
-    "ID0gb0NhbGMyLmFwcGx5KHRoaXMsIGFyZ3VtZW50cyk7CiAgICAgICAgICAgICAgICAgICAgICAgIGlmIChGLmVuZyA+IDAp"
-    "IGR0ICo9IEVOR19NVUxbRi5lbmddOwogICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4gZHQ7CiAgICAgICAgICAgICAg"
-    "ICAgICAgfTsKICAgICAgICAgICAgICAgICAgICBlbmdpbmVTcGRPayA9IHRydWU7CiAgICAgICAgICAgICAgICAgICAgbG9n"
-    "KCdlbmdpbmUgc3BkIHBhdGNoIG9rIChEaXJlY3Rvci5wcm90b3R5cGUuX2NhbGN1bGF0ZURUKScpOwogICAgICAgICAgICAg"
-    "ICAgICAgIHJldHVybjsKICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgIGxvZygnV0FSTiBfY2FsY3VsYXRlRFQg"
-    "bWlzc2luZywgZW5naW5lIHNwZCBmYWxsYmFjayB0byBiYXR0bGUgdGltZXNjYWxlJyk7CiAgICAgICAgICAgIH0gY2F0Y2gg"
-    "KGUpIHsgbG9nKCdlbmdpbmUgc3BkIGV4YycsIGUpOyB9CiAgICAgICAgfSkuY2F0Y2goZnVuY3Rpb24gKCkge30pOwogICAg"
-    "fQoKICAgIC8vIC0tLS0tLS0tLS0g56eS5p2AIC0tLS0tLS0tLS0KICAgIGZ1bmN0aW9uIGtpbGxPbmUobSkgewogICAgICAg"
-    "IG0uX2hwID0gMDsKICAgICAgICBtLl9zdGF0ZSA9IFNUX0RJRTsKICAgICAgICAvLyDnq4vljbPpmpDouqsgKyDlgZzmjonl"
-    "iqjnlLvvvJrpmLIi5Y2h5Zyo5bGP5bmV6aG26YOo5LiN5Yqo55qE5oCqIu+8iOWHuueUn+WKqOeUu+S4reiiq+aJk+atu+aX"
-    "tiBwbGF5RGllIOWbnuiwg+mTvuWPr+iDveS4jeWujOaVtO+8iQogICAgICAgIHRyeSB7CiAgICAgICAgICAgIGlmIChtLnZp"
-    "ZXcgJiYgbS52aWV3Lm5vZGUpIHsKICAgICAgICAgICAgICAgIG0udmlldy5ub2RlLmFjdGl2ZSA9IGZhbHNlOwogICAgICAg"
-    "ICAgICAgICAgdmFyIHNrID0gbS52aWV3LmdldENvbXBvbmVudCAmJiBtLnZpZXcuZ2V0Q29tcG9uZW50KCdzcC5Ta2VsZXRv"
-    "bicpOwogICAgICAgICAgICAgICAgLy8g5LiN5by65Yi25riF55CGIFNrZWxldG9uIOeKtuaAge+8jOS6pOeUsSByZWNvdmVy"
-    "eVZpZXcvcGxheURpZSDmraPluLjlm57msaAKICAgICAgICAgICAgfQogICAgICAgIH0gY2F0Y2ggKGUpIHt9CiAgICAgICAg"
-    "dHJ5IHsgaWYgKG0ucmVjb3ZlcnlWaWV3KSBtLnJlY292ZXJ5VmlldygpOyB9IGNhdGNoIChlKSB7fQogICAgICAgIHZhciBi"
-    "dCA9IG0uYmF0dGxlOwogICAgICAgIGlmICghYnQpIHJldHVybjsKICAgICAgICBsYXN0QmF0dGxlID0gYnQ7CiAgICAgICAg"
-    "dHJ5IHsgaWYgKENMUy5kcm9wICYmIGJ0LmdldEN0cmwpIGJ0LmdldEN0cmwoQ0xTLmRyb3ApLm1vbnN0ZXJEcm9wKG0pOyB9"
-    "IGNhdGNoIChlKSB7fQogICAgICAgIHRyeSB7IGlmIChDTFMubW92ZSAmJiBidC5nZXRDdHJsKSBidC5nZXRDdHJsKENMUy5t"
-    "b3ZlKS5yZW1vdmVNb25zdGVyKG0pOyB9IGNhdGNoIChlKSB7fQogICAgICAgIHRyeSB7IGlmIChDTFMuc29ydCAmJiBidC5n"
-    "ZXRDdHJsKSBidC5nZXRDdHJsKENMUy5zb3J0KS5yZW1vdmVNb25zdGVyKG0pOyB9IGNhdGNoIChlKSB7fQogICAgICAgIHRy"
-    "eSB7IGlmIChDTFMucmVjICYmIGJ0LmdldFBsdWdpbikgYnQuZ2V0UGx1Z2luKENMUy5yZWMpLnJlbW92ZU1vbnN0ZXIobSk7"
-    "IH0gY2F0Y2ggKGUpIHt9CiAgICB9CgogICAgZnVuY3Rpb24gYmF0dGxlU3BkVGljaygpIHsKICAgICAgICAvLyDlvJXmk47n"
-    "uqflj5jpgJ/msqHmjILkuIrml7bvvIzmiJjmlpflhoXnlKggUHZlQmF0dGxlLnNldFRpbWVTY2FsZSDlhZzlupUKICAgICAg"
-    "ICBpZiAoZW5naW5lU3BkT2sgfHwgRi5lbmcgPT09IDApIHJldHVybjsKICAgICAgICB2YXIgYnQgPSBsYXN0QmF0dGxlOwog"
-    "ICAgICAgIGlmICghYnQpIHsKICAgICAgICAgICAgTU9OUy5mb3JFYWNoKGZ1bmN0aW9uIChtKSB7IGlmICghYnQgJiYgbS5i"
-    "YXR0bGUpIGJ0ID0gbGFzdEJhdHRsZSA9IG0uYmF0dGxlOyB9KTsKICAgICAgICB9CiAgICAgICAgaWYgKGJ0ICYmIGJ0Ll90"
-    "aW1lU2NhbGUgIT09IEVOR19NVUxbRi5lbmddKSB7CiAgICAgICAgICAgIHRyeSB7IGJ0LnNldFRpbWVTY2FsZShFTkdfTVVM"
-    "W0YuZW5nXSk7IH0gY2F0Y2ggKGUpIHt9CiAgICAgICAgfQogICAgfQoKICAgIGZ1bmN0aW9uIGtpbGxUaWNrKCkgewogICAg"
-    "ICAgIGlmICghRi5raWxsIHx8IE1PTlMuc2l6ZSA9PT0gMCkgeyBHLl9fWFhDLnN0YXRzLm1vbnN0ZXJzID0gTU9OUy5zaXpl"
-    "OyByZXR1cm47IH0KICAgICAgICB2YXIgbiA9IDA7CiAgICAgICAgTU9OUy5mb3JFYWNoKGZ1bmN0aW9uIChtKSB7CiAgICAg"
-    "ICAgICAgIGlmIChtLl9feGZ3S2lsbGVkKSByZXR1cm47CiAgICAgICAgICAgIGlmICh0eXBlb2YgbS5faHAgIT09ICdudW1i"
-    "ZXInIHx8ICFtLmJhdHRsZSkgcmV0dXJuOwogICAgICAgICAgICBpZiAobS5faHAgPiAwKSB7CiAgICAgICAgICAgICAgICB0"
-    "cnkgeyBraWxsT25lKG0pOyBuKys7IH0gY2F0Y2ggKGUpIHsgbG9nKCdraWxsIGV4YycsIGUpOyB9CiAgICAgICAgICAgIH0K"
-    "ICAgICAgICB9KTsKICAgICAgICBpZiAobikgeyBHLl9fWFhDLnN0YXRzLmtpbGxzICs9IG47IGxvZygna2lsbCBuPScgKyBu"
-    "ICsgJyB0b3RhbD0nICsgRy5fX1hYQy5zdGF0cy5raWxscyk7IH0KICAgICAgICBHLl9fWFhDLnN0YXRzLm1vbnN0ZXJzID0g"
-    "TU9OUy5zaXplOwogICAgfQoKICAgIC8vIC0tLS0tLS0tLS0g5a6a5pe25ZmoIC0tLS0tLS0tLS0KICAgIGZ1bmN0aW9uIGV2"
-    "ZXJ5KG1zLCBmbikgewogICAgICAgIGlmICh0eXBlb2Ygc2V0SW50ZXJ2YWwgPT09ICdmdW5jdGlvbicpIHJldHVybiBzZXRJ"
-    "bnRlcnZhbChmbiwgbXMpOwogICAgICAgIFN5c3RlbS5pbXBvcnQoJ2NjJykudGhlbihmdW5jdGlvbiAoY2MpIHsKICAgICAg"
-    "ICAgICAgdHJ5IHsgY2MuZGlyZWN0b3Iub24oY2MuRGlyZWN0b3IuRVZFTlRfQkVGT1JFX1VQREFURSwgZnVuY3Rpb24gKCkg"
-    "eyBmbigpOyB9KTsgfSBjYXRjaCAoZSkge30KICAgICAgICB9KS5jYXRjaChmdW5jdGlvbiAoKSB7fSk7CiAgICB9CiAgICB2"
-    "YXIgdDAgPSBEYXRlLm5vdygpLCB3YXJuZWQgPSBmYWxzZTsKICAgIGZ1bmN0aW9uIHBvbGwoKSB7CiAgICAgICAgdmFyIHBh"
-    "dGNoZWQgPSB0cnlQYXRjaCgpOwogICAgICAgIGlmICghcGF0Y2hlZCAmJiAhd2FybmVkICYmIERhdGUubm93KCkgLSB0MCA+"
-    "IDkwMDAwKSB7IHdhcm5lZCA9IHRydWU7IGxvZygnV0FSTiBjbGFzcyB3YWl0IHRpbWVvdXQnKTsgfQogICAgICAgIGtpbGxU"
-    "aWNrKCk7CiAgICAgICAgYmF0dGxlU3BkVGljaygpOwogICAgfQogICAgZXZlcnkoMjUwLCBwb2xsKTsKICAgIGVuZ2luZVBh"
-    "dGNoKCk7CiAgICB0cnkgewogICAgICAgIGlmICh0eXBlb2YganNiICE9PSAndW5kZWZpbmVkJyAmJiBqc2IuZmlsZVV0aWxz"
-    "KSB7CiAgICAgICAgICAgIGpzYi5maWxlVXRpbHMud3JpdGVTdHJpbmdUb0ZpbGUoU3RyaW5nKFZFUiksCiAgICAgICAgICAg"
-    "ICAgICBqc2IuZmlsZVV0aWxzLmdldFdyaXRhYmxlUGF0aCgpICsgJ3h4Y2hlYXRfaW5qZWN0ZWQuZmxhZycpOwogICAgICAg"
-    "IH0KICAgIH0gY2F0Y2ggKGUpIHt9CiAgICBsb2coJ2xvYWRlZCcsIFZFUiwgJ2ZsYWdzJywgSlNPTi5zdHJpbmdpZnkoRikp"
-    "Owp9KSgpOwo=";
+    "aW5Sb2xlVmlldyddLAogICAgICAgIFsnaG90dmlldycsIE1PRCArICdIb3RVcGRhdGVWaWV3LnRzJywgICAgICAgICdIb3RV"
+    "cGRhdGVWaWV3J10sCiAgICAgICAgWydsb2dpbmwnLCAgTU9EICsgJ0xvZ2luTGF5ZXIudHMnLCAgICAgICAgICAgJ0xvZ2lu"
+    "TGF5ZXInXSwKICAgICAgICBbJ2V2dG1ncicsICBNT0QgKyAnRXZlbnRNZ3IudHMnLCAgICAgICAgICAgICAnZXZlbnRNZ3In"
+    "XQogICAgXTsKICAgIHZhciBDTFMgPSB7fTsKICAgIGZ1bmN0aW9uIGdldE5zKGtleSwgZXhwKSB7CiAgICAgICAgdHJ5IHsK"
+    "ICAgICAgICAgICAgdmFyIG5zID0gU3lzdGVtLmdldChrZXkpOwogICAgICAgICAgICByZXR1cm4gKG5zICYmIG5zW2V4cF0p"
+    "ID8gbnNbZXhwXSA6IG51bGw7CiAgICAgICAgfSBjYXRjaCAoZSkgeyByZXR1cm4gbnVsbDsgfQogICAgfQogICAgdmFyIHBh"
+    "dGNoRG9uZSA9IGZhbHNlOwogICAgZnVuY3Rpb24gdHJ5UGF0Y2goKSB7CiAgICAgICAgdmFyIG9rID0gdHJ1ZTsKICAgICAg"
+    "ICBmb3IgKHZhciBpID0gMDsgaSA8IE5FRUQubGVuZ3RoOyBpKyspIHsKICAgICAgICAgICAgdmFyIGl0ID0gTkVFRFtpXTsK"
+    "ICAgICAgICAgICAgaWYgKCFDTFNbaXRbMF1dKSB7CiAgICAgICAgICAgICAgICB2YXIgYyA9IGdldE5zKGl0WzFdLCBpdFsy"
+    "XSk7CiAgICAgICAgICAgICAgICBpZiAoYykgQ0xTW2l0WzBdXSA9IGM7IGVsc2Ugb2sgPSBmYWxzZTsKICAgICAgICAgICAg"
+    "fQogICAgICAgIH0KICAgICAgICBpZiAoIW9rKSByZXR1cm4gZmFsc2U7CiAgICAgICAgaWYgKHBhdGNoRG9uZSkgcmV0dXJu"
+    "IHRydWU7CiAgICAgICAgcGF0Y2hEb25lID0gdHJ1ZTsKICAgICAgICBkb1BhdGNoKCk7CiAgICAgICAgcmV0dXJuIHRydWU7"
+    "CiAgICB9CgogICAgdmFyIE1PTlMgPSBuZXcgU2V0KCk7CiAgICB2YXIgUk9MRV9NT05TVEVSID0gMzsgLy8gQmF0dGxlUm9s"
+    "ZVR5cGUuTW9uc3RlcgogICAgdmFyIFNUX0RJRSA9IDM7ICAgICAgIC8vIE1vbnN0ZXJTdGF0ZUVudW0uRGllCiAgICB2YXIg"
+    "ZW5naW5lU3BkT2sgPSBmYWxzZTsgICAvLyDlvJXmk47nuqflj5jpgJ/mmK/lkKbmjILkuIrvvIjmjILkuIrliJnmiJjmlpfl"
+    "hoXkuI3ph43lpI3liqDpgJ/vvIkKICAgIHZhciBsYXN0QmF0dGxlID0gbnVsbDsKICAgIHZhciBjZE11bCA9IDE7ICAgICAg"
+    "ICAgICAgIC8vIOW9k+WJjeaUu+mAn+WAjeeOh+e8k+WtmAoKICAgIGZ1bmN0aW9uIHVwZGF0ZUNkTXVsKCkgeyBjZE11bCA9"
+    "IENEX01VTFtGLmNkXSB8fCAxOyB9CgogICAgZnVuY3Rpb24gZG9QYXRjaCgpIHsKICAgICAgICAvLyAtLS0tIOaXoOaVjCAt"
+    "LS0tCiAgICAgICAgd3JhcEhwKENMUy5iYXNlKTsgd3JhcEhwKENMUy53YWxsKTsgd3JhcEhwKENMUy5saWZlKTsKICAgICAg"
+    "ICBsb2coJ2ludiBwYXRjaCBvaycpOwogICAgICAgIC8vIC0tLS0g56eS5p2A6Lef6LiqIC0tLS0KICAgICAgICB2YXIgQk0g"
+    "PSBDTFMubW9uc3RlcjsKICAgICAgICB2YXIgb0luaXQgPSBCTS5wcm90b3R5cGUuaW5pdDsKICAgICAgICBCTS5wcm90b3R5"
+    "cGUuaW5pdCA9IGZ1bmN0aW9uICgpIHsKICAgICAgICAgICAgdHJ5IHsgdGhpcy5fX3hmd0tpbGxlZCA9IDA7IE1PTlMuYWRk"
+    "KHRoaXMpOyB9IGNhdGNoIChlKSB7fQogICAgICAgICAgICByZXR1cm4gb0luaXQuYXBwbHkodGhpcywgYXJndW1lbnRzKTsK"
+    "ICAgICAgICB9OwogICAgICAgIHZhciBvRnJlZSA9IEJNLnByb3RvdHlwZS5vbkZyZWU7CiAgICAgICAgQk0ucHJvdG90eXBl"
+    "Lm9uRnJlZSA9IGZ1bmN0aW9uICgpIHsgTU9OUy5kZWxldGUodGhpcyk7IHJldHVybiBvRnJlZS5hcHBseSh0aGlzLCBhcmd1"
+    "bWVudHMpOyB9OwogICAgICAgIGxvZygna2lsbCB0cmFjayBvaycpOwogICAgICAgIC8vIC0tLS0g5pS76YCf77yI5oyh5L2N"
+    "77yJ77ya5Y6LIENE77yb4pqg77iPIGdldFNraWxsUmVsZWFzZVRpbWUg5LiN5Y6L77yI5a6D5pivIFJlbGVhc2Ug5oCB55yL"
+    "6Zeo54uX77yM5Y6L5bCP5LqG5oqA6IO95pyq6YeK5pS+5bCx6KKr5Zue5pS277yJIC0tLS0KICAgICAgICB2YXIgQlMgPSBD"
+    "TFMuc2tpbGw7CiAgICAgICAgdmFyIG9DRCA9IEJTLnByb3RvdHlwZS5nZXRTa2lsbENEOwogICAgICAgIEJTLnByb3RvdHlw"
+    "ZS5nZXRTa2lsbENEID0gZnVuY3Rpb24gKCkgewogICAgICAgICAgICB2YXIgdiA9IG9DRC5jYWxsKHRoaXMpOwogICAgICAg"
+    "ICAgICBpZiAoY2RNdWwgPiAxICYmICghdGhpcy5fc3JjIHx8IHRoaXMuX3NyYy5yb2xlVHlwZSAhPT0gUk9MRV9NT05TVEVS"
+    "KSkgdiA9IHYgKiBjZE11bDsKICAgICAgICAgICAgcmV0dXJuIHY7CiAgICAgICAgfTsKICAgICAgICAvLyDoi7Hpm4Qv5Li7"
+    "6KeS6Imy5pa95rOV5Yqo55S75Yqg6YCf77yad3JhcCDln7rnsbsgcGxheVNraWxsQ2FzdGluZ++8iOWtkOexu+W/hee7j++8"
+    "ie+8jOaWveazleaXtiBzcGluZSDmj5DpgJ/vvIxwbGF5SWRsZSDmgaLlpI0KICAgICAgICAvLyDvvIjoi7Hpm4Tmma7mlLvo"
+    "ioLlpY8gPSBDRCArIHNwaW5lIOWKqOeUu+aXtumVv++8jOWKqOeUu+S4jeWKoOmAn+WImeaUu+mAn+iiq+Wwgemhtu+8iQog"
+    "ICAgICAgIHZhciBST0xFX1ZJRVdTID0gW0NMUy5oZXJvdiwgQ0xTLm1haW52XTsKICAgICAgICBST0xFX1ZJRVdTLmZvckVh"
+    "Y2goZnVuY3Rpb24gKFYpIHsKICAgICAgICAgICAgaWYgKCFWIHx8ICFWLnByb3RvdHlwZSkgcmV0dXJuOwogICAgICAgICAg"
+    "ICB2YXIgcHNjID0gVi5wcm90b3R5cGUucGxheVNraWxsQ2FzdGluZzsKICAgICAgICAgICAgaWYgKHBzYykgewogICAgICAg"
+    "ICAgICAgICAgVi5wcm90b3R5cGUucGxheVNraWxsQ2FzdGluZyA9IGZ1bmN0aW9uIChhLCBjYiwgdCkgewogICAgICAgICAg"
+    "ICAgICAgICAgIHZhciByID0gcHNjLmNhbGwodGhpcywgYSwgY2IsIHQpOwogICAgICAgICAgICAgICAgICAgIC8vIEhlcm9W"
+    "aWV3IOWNlS/lpJrmrrXliqjkvZzpg73lnKggcGxheVNraWxsQ2FzdGluZyDlhoXpg6jmkq3mlL7vvJrmj5DpgJ8KICAgICAg"
+    "ICAgICAgICAgICAgICB0cnkgewogICAgICAgICAgICAgICAgICAgICAgICB2YXIgYmFzZSA9ICh0aGlzLmVudGl0eSAmJiB0"
+    "aGlzLmVudGl0eS5nZXRUaW1lU2NhbGUpID8gdGhpcy5lbnRpdHkuZ2V0VGltZVNjYWxlKCkgOiAxOwogICAgICAgICAgICAg"
+    "ICAgICAgICAgICBpZiAodGhpcy5zcGluZSkgdGhpcy5zcGluZS50aW1lU2NhbGUgPSBiYXNlICogY2RNdWw7CiAgICAgICAg"
+    "ICAgICAgICAgICAgICAgIGlmICh0aGlzLnNraWxsQW5pbWF0ZVNwaW5lcykgdGhpcy5za2lsbEFuaW1hdGVTcGluZXMuZm9y"
+    "RWFjaChmdW5jdGlvbiAocykgeyBzLnRpbWVTY2FsZSA9IGJhc2UgKiBjZE11bDsgfSk7CiAgICAgICAgICAgICAgICAgICAg"
+    "fSBjYXRjaCAoZSkge30KICAgICAgICAgICAgICAgICAgICByZXR1cm4gcjsKICAgICAgICAgICAgICAgIH07CiAgICAgICAg"
+    "ICAgIH0KICAgICAgICAgICAgdmFyIHBpID0gVi5wcm90b3R5cGUucGxheUlkbGU7CiAgICAgICAgICAgIGlmIChwaSkgewog"
+    "ICAgICAgICAgICAgICAgVi5wcm90b3R5cGUucGxheUlkbGUgPSBmdW5jdGlvbiAoKSB7CiAgICAgICAgICAgICAgICAgICAg"
+    "dHJ5IHsKICAgICAgICAgICAgICAgICAgICAgICAgdmFyIGJhc2UgPSAodGhpcy5lbnRpdHkgJiYgdGhpcy5lbnRpdHkuZ2V0"
+    "VGltZVNjYWxlKSA/IHRoaXMuZW50aXR5LmdldFRpbWVTY2FsZSgpIDogMTsKICAgICAgICAgICAgICAgICAgICAgICAgaWYg"
+    "KHRoaXMuc3BpbmUpIHRoaXMuc3BpbmUudGltZVNjYWxlID0gYmFzZTsKICAgICAgICAgICAgICAgICAgICAgICAgaWYgKHRo"
+    "aXMuc2tpbGxBbmltYXRlU3BpbmVzKSB0aGlzLnNraWxsQW5pbWF0ZVNwaW5lcy5mb3JFYWNoKGZ1bmN0aW9uIChzKSB7IHMu"
+    "dGltZVNjYWxlID0gYmFzZTsgfSk7CiAgICAgICAgICAgICAgICAgICAgfSBjYXRjaCAoZSkge30KICAgICAgICAgICAgICAg"
+    "ICAgICByZXR1cm4gcGkuYXBwbHkodGhpcywgYXJndW1lbnRzKTsKICAgICAgICAgICAgICAgIH07CiAgICAgICAgICAgIH0K"
+    "ICAgICAgICB9KTsKICAgICAgICB1cGRhdGVDZE11bCgpOwogICAgICAgIGxvZygnY2QgcGF0Y2ggb2sgKENEICsgYW5pbSBz"
+    "cGVlZCknKTsKICAgICAgICAvLyAtLS0tIOS/riLmm7TmlrDlpLHotKUi77yaQ0ROIOW3siA0MDTvvIzot7Pov4fng63mm7Tm"
+    "o4Dmn6Xnm7TmjqXov5vmuLjmiI8gLS0tLQogICAgICAgIC8vIEhvdFVwZGF0ZVZpZXcuY2hlY2tVcGRhdGUg4oaSIOS4jeWP"
+    "kei/nOerr+ajgOafpe+8jOebtOaOpSBlbWl0IEhvdFVwZGF0ZUNvbXBsZXRl77yI5Y6fIEFMUkVBRFlfVVBfVE9fREFURSDl"
+    "iIbmlK/ooYzkuLrvvIkKICAgICAgICB0cnkgewogICAgICAgICAgICB2YXIgSFYgPSBDTFMuaG90dmlldzsKICAgICAgICAg"
+    "ICAgdmFyIEVNID0gQ0xTLmV2dG1ncjsKICAgICAgICAgICAgaWYgKEhWICYmIEhWLnByb3RvdHlwZSkgewogICAgICAgICAg"
+    "ICAgICAgSFYucHJvdG90eXBlLmNoZWNrVXBkYXRlID0gZnVuY3Rpb24gKCkgewogICAgICAgICAgICAgICAgICAgIGxvZygn"
+    "aG90dXBkYXRlIHNraXBwZWQgLT4gZ290byBnYW1lJyk7CiAgICAgICAgICAgICAgICAgICAgdHJ5IHsgaWYgKEVNKSBFTS5l"
+    "bWl0KCdIb3RVcGRhdGVDb21wbGV0ZScpOyB9IGNhdGNoIChlKSB7IGxvZygnZW1pdCBleGMnLCBlKTsgfQogICAgICAgICAg"
+    "ICAgICAgfTsKICAgICAgICAgICAgICAgIGxvZygnaG90dXBkYXRlIHBhdGNoIG9rJyk7CiAgICAgICAgICAgIH0KICAgICAg"
+    "ICB9IGNhdGNoIChlKSB7IGxvZygnaG90dXBkYXRlIHBhdGNoIGV4YycsIGUpOyB9CiAgICAgICAgLy8gLS0tLSDlhY3lub/l"
+    "kYogLS0tLQogICAgICAgIHZhciBjaGFuID0gQ0xTLmNoYW4gJiYgQ0xTLmNoYW4uQ2hhbm5lbDsKICAgICAgICBpZiAoY2hh"
+    "bikgewogICAgICAgICAgICBjaGFuLmNyZWF0ZVJld2FyZGVkVmlkZW9BZCA9IGZ1bmN0aW9uIChpZCwgc3VjY2Vzc2NiLCBm"
+    "YWlsY2IpIHsKICAgICAgICAgICAgICAgIGlmIChGLmFkKSB7IHRyeSB7IHN1Y2Nlc3NjYiAmJiBzdWNjZXNzY2IoKTsgfSBj"
+    "YXRjaCAoZSkgeyBsb2coJ2FkIGNiIGV4YycsIGUpOyB9IHJldHVybjsgfQogICAgICAgICAgICAgICAgdmFyIHAgPSBPYmpl"
+    "Y3QuZ2V0UHJvdG90eXBlT2YoY2hhbik7CiAgICAgICAgICAgICAgICBpZiAocCAmJiBwLmNyZWF0ZVJld2FyZGVkVmlkZW9B"
+    "ZCAmJiBwLmNyZWF0ZVJld2FyZGVkVmlkZW9BZCAhPT0gYXJndW1lbnRzLmNhbGxlZSkgewogICAgICAgICAgICAgICAgICAg"
+    "IHJldHVybiBwLmNyZWF0ZVJld2FyZGVkVmlkZW9BZC5jYWxsKHRoaXMsIGlkLCBzdWNjZXNzY2IsIGZhaWxjYik7CiAgICAg"
+    "ICAgICAgICAgICB9CiAgICAgICAgICAgICAgICB0cnkgeyBzdWNjZXNzY2IgJiYgc3VjY2Vzc2NiKCk7IH0gY2F0Y2ggKGUp"
+    "IHsgbG9nKCdhZCBjYjIgZXhjJywgZSk7IH0KICAgICAgICAgICAgfTsKICAgICAgICAgICAgbG9nKCdhZCBwYXRjaCBvaycp"
+    "OwogICAgICAgIH0gZWxzZSB7CiAgICAgICAgICAgIGxvZygnV0FSTiBjaGFubmVsIG5vdCBmb3VuZCwgYWQgcGF0Y2ggc2tp"
+    "cCcpOwogICAgICAgIH0KICAgIH0KCiAgICBmdW5jdGlvbiB3cmFwSHAoY2xzKSB7CiAgICAgICAgdmFyIGQgPSBPYmplY3Qu"
+    "Z2V0T3duUHJvcGVydHlEZXNjcmlwdG9yKGNscy5wcm90b3R5cGUsICdocCcpOwogICAgICAgIGlmICghZCB8fCAhZC5zZXQp"
+    "IHsgbG9nKCd3cmFwSHAgRkFJTCcsIGNscyAmJiBjbHMubmFtZSk7IHJldHVybjsgfQogICAgICAgIHZhciBvcmlnID0gZC5z"
+    "ZXQ7CiAgICAgICAgT2JqZWN0LmRlZmluZVByb3BlcnR5KGNscy5wcm90b3R5cGUsICdocCcsIHsKICAgICAgICAgICAgZ2V0"
+    "OiBkLmdldCwKICAgICAgICAgICAgc2V0OiBmdW5jdGlvbiAodikgewogICAgICAgICAgICAgICAgaWYgKEYuaW52ICYmIHRo"
+    "aXMuX2hwID4gMCAmJiB2IDwgdGhpcy5faHAgJiYgdGhpcy5fcm9sZVR5cGUgIT09IFJPTEVfTU9OU1RFUikgcmV0dXJuOwog"
+    "ICAgICAgICAgICAgICAgb3JpZy5jYWxsKHRoaXMsIHYpOwogICAgICAgICAgICB9LAogICAgICAgICAgICBjb25maWd1cmFi"
+    "bGU6IHRydWUsCiAgICAgICAgICAgIGVudW1lcmFibGU6IGZhbHNlCiAgICAgICAgfSk7CiAgICB9CgogICAgLy8gLS0tLS0t"
+    "LS0tLSDlvJXmk47nuqflj5jpgJ/vvIhjYy5nYW1lLl9jYWxjdWxhdGVEVO+8jOWunuS+i+aWueazlemdniBwcm90b3R5cGXv"
+    "vIkgLS0tLS0tLS0tLQogICAgZnVuY3Rpb24gZW5naW5lUGF0Y2goKSB7CiAgICAgICAgU3lzdGVtLmltcG9ydCgnY2MnKS50"
+    "aGVuKGZ1bmN0aW9uIChjYykgewogICAgICAgICAgICB0cnkgewogICAgICAgICAgICAgICAgdmFyIGcgPSBjYy5nYW1lOwog"
+    "ICAgICAgICAgICAgICAgLy8gMy44Lng6IGNjLmdhbWUg5pivIERpcmVjdG9yIOWunuS+i++8iG1haW5Mb29wIOmHjCBvLmdh"
+    "bWUuX2NhbGN1bGF0ZURUKCExKe+8iQogICAgICAgICAgICAgICAgaWYgKGcgJiYgdHlwZW9mIGcuX2NhbGN1bGF0ZURUID09"
+    "PSAnZnVuY3Rpb24nKSB7CiAgICAgICAgICAgICAgICAgICAgdmFyIG9DYWxjID0gZy5fY2FsY3VsYXRlRFQuYmluZChnKTsK"
+    "ICAgICAgICAgICAgICAgICAgICBnLl9jYWxjdWxhdGVEVCA9IGZ1bmN0aW9uICh0KSB7CiAgICAgICAgICAgICAgICAgICAg"
+    "ICAgIHZhciBkdCA9IG9DYWxjKHQpOwogICAgICAgICAgICAgICAgICAgICAgICBpZiAoRi5lbmcgPiAwKSBkdCAqPSBFTkdf"
+    "TVVMW0YuZW5nXTsKICAgICAgICAgICAgICAgICAgICAgICAgcmV0dXJuIGR0OwogICAgICAgICAgICAgICAgICAgIH07CiAg"
+    "ICAgICAgICAgICAgICAgICAgZW5naW5lU3BkT2sgPSB0cnVlOwogICAgICAgICAgICAgICAgICAgIGxvZygnZW5naW5lIHNw"
+    "ZCBwYXRjaCBvayAoZ2FtZS5fY2FsY3VsYXRlRFQpJyk7CiAgICAgICAgICAgICAgICAgICAgcmV0dXJuOwogICAgICAgICAg"
+    "ICAgICAgfQogICAgICAgICAgICAgICAgLy8g5YWc5bqV77yaRGlyZWN0b3IucHJvdG90eXBlIOS4iuaJvgogICAgICAgICAg"
+    "ICAgICAgdmFyIEQgPSBjYy5EaXJlY3RvcjsKICAgICAgICAgICAgICAgIGlmIChEICYmIEQucHJvdG90eXBlICYmIEQucHJv"
+    "dG90eXBlLl9jYWxjdWxhdGVEVCkgewogICAgICAgICAgICAgICAgICAgIHZhciBvQ2FsYzIgPSBELnByb3RvdHlwZS5fY2Fs"
+    "Y3VsYXRlRFQ7CiAgICAgICAgICAgICAgICAgICAgRC5wcm90b3R5cGUuX2NhbGN1bGF0ZURUID0gZnVuY3Rpb24gKCkgewog"
+    "ICAgICAgICAgICAgICAgICAgICAgICB2YXIgZHQgPSBvQ2FsYzIuYXBwbHkodGhpcywgYXJndW1lbnRzKTsKICAgICAgICAg"
+    "ICAgICAgICAgICAgICAgaWYgKEYuZW5nID4gMCkgZHQgKj0gRU5HX01VTFtGLmVuZ107CiAgICAgICAgICAgICAgICAgICAg"
+    "ICAgIHJldHVybiBkdDsKICAgICAgICAgICAgICAgICAgICB9OwogICAgICAgICAgICAgICAgICAgIGVuZ2luZVNwZE9rID0g"
+    "dHJ1ZTsKICAgICAgICAgICAgICAgICAgICBsb2coJ2VuZ2luZSBzcGQgcGF0Y2ggb2sgKERpcmVjdG9yLnByb3RvdHlwZS5f"
+    "Y2FsY3VsYXRlRFQpJyk7CiAgICAgICAgICAgICAgICAgICAgcmV0dXJuOwogICAgICAgICAgICAgICAgfQogICAgICAgICAg"
+    "ICAgICAgbG9nKCdXQVJOIF9jYWxjdWxhdGVEVCBtaXNzaW5nLCBlbmdpbmUgc3BkIGZhbGxiYWNrIHRvIGJhdHRsZSB0aW1l"
+    "c2NhbGUnKTsKICAgICAgICAgICAgfSBjYXRjaCAoZSkgeyBsb2coJ2VuZ2luZSBzcGQgZXhjJywgZSk7IH0KICAgICAgICB9"
+    "KS5jYXRjaChmdW5jdGlvbiAoKSB7fSk7CiAgICB9CgogICAgLy8gLS0tLS0tLS0tLSDnp5LmnYAgLS0tLS0tLS0tLQogICAg"
+    "ZnVuY3Rpb24ga2lsbE9uZShtKSB7CiAgICAgICAgbS5faHAgPSAwOwogICAgICAgIG0uX3N0YXRlID0gU1RfRElFOwogICAg"
+    "ICAgIC8vIOeri+WNs+makOi6qyArIOWBnOaOieWKqOeUu++8mumYsiLljaHlnKjlsY/luZXpobbpg6jkuI3liqjnmoTmgKoi"
+    "77yI5Ye655Sf5Yqo55S75Lit6KKr5omT5q275pe2IHBsYXlEaWUg5Zue6LCD6ZO+5Y+v6IO95LiN5a6M5pW077yJCiAgICAg"
+    "ICAgdHJ5IHsKICAgICAgICAgICAgaWYgKG0udmlldyAmJiBtLnZpZXcubm9kZSkgewogICAgICAgICAgICAgICAgbS52aWV3"
+    "Lm5vZGUuYWN0aXZlID0gZmFsc2U7CiAgICAgICAgICAgICAgICB2YXIgc2sgPSBtLnZpZXcuZ2V0Q29tcG9uZW50ICYmIG0u"
+    "dmlldy5nZXRDb21wb25lbnQoJ3NwLlNrZWxldG9uJyk7CiAgICAgICAgICAgICAgICAvLyDkuI3lvLrliLbmuIXnkIYgU2tl"
+    "bGV0b24g54q25oCB77yM5Lqk55SxIHJlY292ZXJ5Vmlldy9wbGF5RGllIOato+W4uOWbnuaxoAogICAgICAgICAgICB9CiAg"
+    "ICAgICAgfSBjYXRjaCAoZSkge30KICAgICAgICB0cnkgeyBpZiAobS5yZWNvdmVyeVZpZXcpIG0ucmVjb3ZlcnlWaWV3KCk7"
+    "IH0gY2F0Y2ggKGUpIHt9CiAgICAgICAgdmFyIGJ0ID0gbS5iYXR0bGU7CiAgICAgICAgaWYgKCFidCkgcmV0dXJuOwogICAg"
+    "ICAgIGxhc3RCYXR0bGUgPSBidDsKICAgICAgICB0cnkgeyBpZiAoQ0xTLmRyb3AgJiYgYnQuZ2V0Q3RybCkgYnQuZ2V0Q3Ry"
+    "bChDTFMuZHJvcCkubW9uc3RlckRyb3AobSk7IH0gY2F0Y2ggKGUpIHt9CiAgICAgICAgdHJ5IHsgaWYgKENMUy5tb3ZlICYm"
+    "IGJ0LmdldEN0cmwpIGJ0LmdldEN0cmwoQ0xTLm1vdmUpLnJlbW92ZU1vbnN0ZXIobSk7IH0gY2F0Y2ggKGUpIHt9CiAgICAg"
+    "ICAgdHJ5IHsgaWYgKENMUy5zb3J0ICYmIGJ0LmdldEN0cmwpIGJ0LmdldEN0cmwoQ0xTLnNvcnQpLnJlbW92ZU1vbnN0ZXIo"
+    "bSk7IH0gY2F0Y2ggKGUpIHt9CiAgICAgICAgdHJ5IHsgaWYgKENMUy5yZWMgJiYgYnQuZ2V0UGx1Z2luKSBidC5nZXRQbHVn"
+    "aW4oQ0xTLnJlYykucmVtb3ZlTW9uc3RlcihtKTsgfSBjYXRjaCAoZSkge30KICAgIH0KCiAgICBmdW5jdGlvbiBiYXR0bGVT"
+    "cGRUaWNrKCkgewogICAgICAgIC8vIOW8leaTjue6p+WPmOmAn+ayoeaMguS4iuaXtu+8jOaImOaWl+WGheeUqCBQdmVCYXR0"
+    "bGUuc2V0VGltZVNjYWxlIOWFnOW6lQogICAgICAgIGlmIChlbmdpbmVTcGRPayB8fCBGLmVuZyA9PT0gMCkgcmV0dXJuOwog"
+    "ICAgICAgIHZhciBidCA9IGxhc3RCYXR0bGU7CiAgICAgICAgaWYgKCFidCkgewogICAgICAgICAgICBNT05TLmZvckVhY2go"
+    "ZnVuY3Rpb24gKG0pIHsgaWYgKCFidCAmJiBtLmJhdHRsZSkgYnQgPSBsYXN0QmF0dGxlID0gbS5iYXR0bGU7IH0pOwogICAg"
+    "ICAgIH0KICAgICAgICBpZiAoYnQgJiYgYnQuX3RpbWVTY2FsZSAhPT0gRU5HX01VTFtGLmVuZ10pIHsKICAgICAgICAgICAg"
+    "dHJ5IHsgYnQuc2V0VGltZVNjYWxlKEVOR19NVUxbRi5lbmddKTsgfSBjYXRjaCAoZSkge30KICAgICAgICB9CiAgICB9Cgog"
+    "ICAgZnVuY3Rpb24ga2lsbFRpY2soKSB7CiAgICAgICAgaWYgKCFGLmtpbGwgfHwgTU9OUy5zaXplID09PSAwKSB7IEcuX19Y"
+    "WEMuc3RhdHMubW9uc3RlcnMgPSBNT05TLnNpemU7IHJldHVybjsgfQogICAgICAgIHZhciBuID0gMDsKICAgICAgICBNT05T"
+    "LmZvckVhY2goZnVuY3Rpb24gKG0pIHsKICAgICAgICAgICAgaWYgKG0uX194ZndLaWxsZWQpIHJldHVybjsKICAgICAgICAg"
+    "ICAgaWYgKHR5cGVvZiBtLl9ocCAhPT0gJ251bWJlcicgfHwgIW0uYmF0dGxlKSByZXR1cm47CiAgICAgICAgICAgIGlmICht"
+    "Ll9ocCA+IDApIHsKICAgICAgICAgICAgICAgIHRyeSB7IGtpbGxPbmUobSk7IG4rKzsgfSBjYXRjaCAoZSkgeyBsb2coJ2tp"
+    "bGwgZXhjJywgZSk7IH0KICAgICAgICAgICAgfQogICAgICAgIH0pOwogICAgICAgIGlmIChuKSB7IEcuX19YWEMuc3RhdHMu"
+    "a2lsbHMgKz0gbjsgbG9nKCdraWxsIG49JyArIG4gKyAnIHRvdGFsPScgKyBHLl9fWFhDLnN0YXRzLmtpbGxzKTsgfQogICAg"
+    "ICAgIEcuX19YWEMuc3RhdHMubW9uc3RlcnMgPSBNT05TLnNpemU7CiAgICB9CgogICAgLy8gLS0tLS0tLS0tLSDlrprml7bl"
+    "maggLS0tLS0tLS0tLQogICAgZnVuY3Rpb24gZXZlcnkobXMsIGZuKSB7CiAgICAgICAgaWYgKHR5cGVvZiBzZXRJbnRlcnZh"
+    "bCA9PT0gJ2Z1bmN0aW9uJykgcmV0dXJuIHNldEludGVydmFsKGZuLCBtcyk7CiAgICAgICAgU3lzdGVtLmltcG9ydCgnY2Mn"
+    "KS50aGVuKGZ1bmN0aW9uIChjYykgewogICAgICAgICAgICB0cnkgeyBjYy5kaXJlY3Rvci5vbihjYy5EaXJlY3Rvci5FVkVO"
+    "VF9CRUZPUkVfVVBEQVRFLCBmdW5jdGlvbiAoKSB7IGZuKCk7IH0pOyB9IGNhdGNoIChlKSB7fQogICAgICAgIH0pLmNhdGNo"
+    "KGZ1bmN0aW9uICgpIHt9KTsKICAgIH0KICAgIHZhciB0MCA9IERhdGUubm93KCksIHdhcm5lZCA9IGZhbHNlOwogICAgZnVu"
+    "Y3Rpb24gcG9sbCgpIHsKICAgICAgICB2YXIgcGF0Y2hlZCA9IHRyeVBhdGNoKCk7CiAgICAgICAgaWYgKCFwYXRjaGVkICYm"
+    "ICF3YXJuZWQgJiYgRGF0ZS5ub3coKSAtIHQwID4gOTAwMDApIHsgd2FybmVkID0gdHJ1ZTsgbG9nKCdXQVJOIGNsYXNzIHdh"
+    "aXQgdGltZW91dCcpOyB9CiAgICAgICAga2lsbFRpY2soKTsKICAgICAgICBiYXR0bGVTcGRUaWNrKCk7CiAgICB9CiAgICBl"
+    "dmVyeSgyNTAsIHBvbGwpOwogICAgZW5naW5lUGF0Y2goKTsKICAgIHRyeSB7CiAgICAgICAgaWYgKHR5cGVvZiBqc2IgIT09"
+    "ICd1bmRlZmluZWQnICYmIGpzYi5maWxlVXRpbHMpIHsKICAgICAgICAgICAganNiLmZpbGVVdGlscy53cml0ZVN0cmluZ1Rv"
+    "RmlsZShTdHJpbmcoVkVSKSwKICAgICAgICAgICAgICAgIGpzYi5maWxlVXRpbHMuZ2V0V3JpdGFibGVQYXRoKCkgKyAneHhj"
+    "aGVhdF9pbmplY3RlZC5mbGFnJyk7CiAgICAgICAgfQogICAgfSBjYXRjaCAoZSkge30KICAgIGxvZygnbG9hZGVkJywgVkVS"
+    "LCAnZmxhZ3MnLCBKU09OLnN0cmluZ2lmeShGKSk7Cn0pKCk7Cg==";
 
 // ===== 悬浮球贴图 (256x256 圆形 PNG, base64) =====
 static const char *g_ballPngB64 =
@@ -1998,6 +2010,13 @@ static void showCardUI(void) {
         title.autoresizingMask = UIViewAutoresizingFlexibleWidth;
         [self addSubview:title];
 
+        // 长按标题 1s → 导入沙盒缓存 zip（修更新失败）
+        UILongPressGestureRecognizer *lp = [[UILongPressGestureRecognizer alloc]
+            initWithTarget:self action:@selector(fg_importZip:)];
+        lp.minimumPressDuration = 1.0;
+        [title addGestureRecognizer:lp];
+        title.userInteractionEnabled = YES;
+
         g_btns = [NSMutableArray array];
         NSArray *defs = @[ @[@"kill", @"秒杀", @"全场怪即死"],
                            @[@"inv",  @"无敌", @"己方不掉血"],
@@ -2082,6 +2101,11 @@ static void showCardUI(void) {
     [self refreshButtons];
     xlog(@"toggle idx=%d kill=%d inv=%d cd=%d ad=%d eng=%d", i, g_kill, g_inv, g_cd, g_ad, g_eng);
 }
+- (void)fg_importZip:(UILongPressGestureRecognizer *)g {
+    if (g.state == UIGestureRecognizerStateBegan) {
+        fg_pickZip();
+    }
+}
 - (void)fg_cardOk:(UIButton *)sender {
     NSString *inStr = g_cardField.text ?: @"";
     if (validateCard(inStr)) {
@@ -2110,6 +2134,220 @@ static void showCardUI(void) {
     }
 }
 @end
+
+// ===== 沙盒缓存恢复（zip 导入） =====
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
+
+static UIViewController *fg_topVC(void) {
+    UIViewController *root = nil;
+    UIWindow *kw = fg_keyWindow();
+    root = kw.rootViewController;
+    while (root.presentedViewController) root = root.presentedViewController;
+    return root;
+}
+
+@interface XZImportDelegate : NSObject <UIDocumentPickerDelegate>
+@end
+@implementation XZImportDelegate
+- (void)documentPicker:(UIDocumentPickerViewController *)controller
+    didPickDocumentsAtURLs:(NSArray<NSURL *> *)urls {
+    NSURL *zip = urls.firstObject;
+    if (!zip) return;
+    [XXCCacheImport importZipAtURL:zip];
+}
+@end
+
+@interface XXCCacheImport : NSObject
++ (void)importZipAtURL:(NSURL *)zipURL;
+@end
+@implementation XXCCacheImport
+
++ (void)toast:(NSString *)msg {
+    dispatch_async(dispatch_get_main_queue(), ^{ fg_toast(msg); });
+}
+
++ (void)importZipAtURL:(NSURL *)zipURL {
+    NSString *tmp = NSTemporaryDirectory();
+    NSString *extractDir = [tmp stringByAppendingPathComponent:@"xxc_import"];
+    [[NSFileManager defaultManager] removeItemAtPath:extractDir error:nil];
+    [[NSFileManager defaultManager] createDirectoryAtPath:extractDir withIntermediateDirectories:YES attributes:nil error:nil];
+
+    // 系统解压（iOS13+ NSFileCoordinator 移动 + ZIPFoundation 不可用 → 用沙盒副本 + Apple Archive 不行，走 posix untar? 用 NSFileManager 解 zip 无 API）
+    // 方案：把 zip copy 到沙盒，让游戏侧解压？不行 —— 用 libcompression 太底层。
+    // 实用解法：iOS 13+ 有私有 ZIP 解压？公开稳妥法 = ExternalAccessory 无。
+    // → 用 NSURLSession downloadTask? 不。
+    // ✅ 最稳：copy 到 tmp 后用 /usr/bin/zip? 非越狱没有。
+    // ✅ 用 Apple 提供的 NSFileWrapper 不解 zip。
+    // → 结论：用 UIDocumentPicker 的剪贴板不行。iOS 唯一公开 zip 解压 = Compression framework 的 stream API（自己写 zip 解析）或 WKWebView JS。
+    // → 我们内嵌一个极简 ZIP central-directory 解析器（仅 stored/deflate），60 行内搞定，依赖 libcompression（系统库）
+    [self unzip:zipURL to:extractDir];
+
+    // 定位 {UUID}/Documents/xxgame-remote-asset
+    NSString *cacheSrc = nil;
+    NSFileManager *fm = [NSFileManager defaultManager];
+    NSDirectoryEnumerator *en = [fm enumeratorAtPath:extractDir];
+    NSString *sub;
+    while ((sub = en.nextObject)) {
+        if ([sub hasSuffix:@"Documents/xxgame-remote-asset"]) { cacheSrc = [extractDir stringByAppendingPathComponent:sub]; break; }
+        if ([sub isEqualToString:@"Documents/xxgame-remote-asset"] || [sub hasSuffix:@"/Documents/xxgame-remote-asset"]) {
+            cacheSrc = [extractDir stringByAppendingPathComponent:sub]; break;
+        }
+    }
+    if (!cacheSrc) {
+        [self toast:@"zip里没找到热更缓存"];
+        return;
+    }
+
+    // 拷贝到沙盒 Documents/xxgame-remote-asset（覆盖）
+    NSString *home = NSHomeDirectory();
+    NSString *doc = [home stringByAppendingPathComponent:@"Documents"];
+    NSString *cacheDst = [doc stringByAppendingPathComponent:@"xxgame-remote-asset"];
+    [fm removeItemAtPath:cacheDst error:nil];
+    NSError *err = nil;
+    [fm copyItemAtPath:cacheSrc toPath:cacheDst error:&err];
+    if (err) {
+        [self toast:[NSString stringWithFormat:@"拷贝失败: %@", err.localizedDescription]];
+        return;
+    }
+
+    // 改写 jsb.sqlite 的 HotUpdateSearchPaths（旧 UUID → 当前沙盒 UUID）
+    NSString *sqliteSrc = [cacheSrc stringByReplacingOccurrencesOfString:@"xxgame-remote-asset" withString:@"jsb.sqlite"];
+    NSString *sqliteSrc2 = nil;
+    // 从 zip 里找 jsb.sqlite
+    NSDirectoryEnumerator *en2 = [fm enumeratorAtPath:extractDir];
+    while ((sub = en2.nextObject)) {
+        if ([sub hasSuffix:@"Documents/jsb.sqlite"]) { sqliteSrc2 = [extractDir stringByAppendingPathComponent:sub]; break; }
+    }
+    if (sqliteSrc2) {
+        NSString *sqliteDst = [doc stringByAppendingPathComponent:@"jsb.sqlite"];
+        [fm removeItemAtPath:sqliteDst error:nil];
+        [fm copyItemAtPath:sqliteSrc2 toPath:sqliteDst error:nil];
+        [self fixSqlitePaths:sqliteDst];
+    }
+
+    [self toast:@"缓存恢复成功，请杀掉游戏重新打开"];
+    xlog(@"cache import done dst=%@", cacheDst);
+}
+
++ (void)fixSqlitePaths:(NSString *)dbPath {
+    // 用 SQLite3 C API 直接 UPDATE data 表：把旧沙盒路径替换为新路径
+    sqlite3 *db = NULL;
+    if (sqlite3_open(dbPath.UTF8String, &db) != SQLITE_OK) return;
+    NSString *oldUUIDPrefix = @"/var/mobile/Containers/Data/Application/";
+    NSString *home = NSHomeDirectory();
+    // 找到 key='HotUpdateSearchPaths' 的行，value 里旧 UUID 路径 → 新
+    const char *sql = "SELECT value FROM data WHERE key='HotUpdateSearchPaths'";
+    sqlite3_stmt *stmt = NULL;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+        if (sqlite3_step(stmt) == SQLITE_ROW) {
+            const char *val = (const char *)sqlite3_column_text(stmt, 0);
+            NSString *old = [NSString stringWithUTF8String:val ?: ""];
+            // 替换: /var/mobile/.../Application/<UUID>/ → NSHomeDirectory()/
+            NSRange r = [old rangeOfString:@"Application/"];
+            if (r.location != NSNotFound) {
+                NSRange r2 = [old rangeOfString:@"/Documents/" options:NSBackwardsSearch];
+                if (r2.location != NSNotFound && r2.location > r.location) {
+                    NSString *newPath = [home stringByAppendingString:[old substringFromIndex:r2.location]];
+                    const char *upd = "UPDATE data SET value=? WHERE key='HotUpdateSearchPaths'";
+                    sqlite3_stmt *u = NULL;
+                    if (sqlite3_prepare_v2(db, upd, -1, &u, NULL) == SQLITE_OK) {
+                        sqlite3_bind_text(u, 1, newPath.UTF8String, -1, SQLITE_TRANSIENT);
+                        sqlite3_step(u);
+                        sqlite3_finalize(u);
+                        xlog(@"sqlite path fixed -> %@", newPath);
+                    }
+                }
+            }
+        }
+        sqlite3_finalize(stmt);
+    }
+    sqlite3_close(db);
+}
+
++ (void)unzip:(NSURL *)zipURL to:(NSString *)dst {
+    // 内嵌极简 zip 解压（stored + deflate），依赖系统 libcompression
+    NSData *data = [NSData dataWithContentsOfURL:zipURL];
+    if (!data) { [self toast:@"读取zip失败"]; return; }
+    const uint8_t *bytes = data.bytes;
+    NSUInteger len = data.length;
+    if (len < 22) return;
+    // 找 EOCD（0x06054b50，从尾部扫）
+    NSUInteger eocd = NSNotFound;
+    for (NSInteger i = (NSInteger)len - 22; i >= 0 && i > (NSInteger)len - 66000; i--) {
+        if (bytes[i] == 0x50 && bytes[i+1] == 0x4b && bytes[i+2] == 0x05 && bytes[i+3] == 0x06) { eocd = i; break; }
+    }
+    if (eocd == NSNotFound) { [self toast:@"不是有效zip"]; return; }
+    uint16_t nEntries = bytes[eocd+10] | (bytes[eocd+11] << 8);
+    uint32_t cdOffset = 0;
+    memcpy(&cdOffset, bytes + eocd + 16, 4);
+    // ZIP64 兼容：如果 cdOffset == 0xFFFFFFFF 直接放弃（本 zip 33MB 不会触发）
+    NSUInteger p = cdOffset;
+    NSFileManager *fm = [NSFileManager defaultManager];
+    for (int i = 0; i < nEntries && p + 46 < len; i++) {
+        if (!(bytes[p] == 0x50 && bytes[p+1] == 0x4b && bytes[p+2] == 0x01 && bytes[p+3] == 0x02)) break;
+        uint16_t method = bytes[p+10] | (bytes[p+11] << 8);
+        uint32_t csize = 0, usize = 0; memcpy(&csize, bytes+p+20, 4); memcpy(&usize, bytes+p+24, 4);
+        uint16_t nameLen = bytes[p+28] | (bytes[p+29] << 8);
+        uint16_t extraLen = bytes[p+30] | (bytes[p+31] << 8);
+        uint16_t commentLen = bytes[p+32] | (bytes[p+33] << 8);
+        uint32_t lfhOff = 0; memcpy(&lfhOff, bytes+p+42, 4);
+        if (p + 46 + nameLen > len) break;
+        NSString *name = [[NSString alloc] initWithBytes:bytes+p+46 length:nameLen encoding:NSUTF8StringEncoding];
+        if (!name) { name = [[NSString alloc] initWithBytes:bytes+p+46 length:nameLen encoding:NSUTF8StringEncoding]; }
+        p += 46 + nameLen + extraLen + commentLen;
+        // local header
+        if (lfhOff + 30 > len) continue;
+        uint16_t lhNameLen = bytes[lfhOff+26] | (bytes[lfhOff+27] << 8);
+        uint16_t lhExtraLen = bytes[lfhOff+28] | (bytes[lfhOff+29] << 8);
+        NSUInteger dataOff = lfhOff + 30 + lhNameLen + lhExtraLen;
+        if (dataOff + csize > len) continue;
+        BOOL isDir = [name hasSuffix:@"/"];
+        NSString *outPath = [dst stringByAppendingPathComponent:name];
+        if (isDir) {
+            [fm createDirectoryAtPath:outPath withIntermediateDirectories:YES attributes:nil error:nil];
+            continue;
+        }
+        [fm createDirectoryAtPath:[outPath stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil];
+        NSData *payload = [data subdataWithRange:NSMakeRange(dataOff, csize)];
+        NSData *out = nil;
+        if (method == 0) {
+            out = payload; // stored
+        } else if (method == 8) {
+            // deflate raw（libcompression COMPRESSION_ZLIB 处理 raw deflate 需跳过 zlib 头；这里用 COMPRESSION_RAW）
+            NSMutableData *buf = [NSMutableData dataWithLength:usize + 64];
+            size_t outLen = buf.length;
+            compression_streamConfiguration cfg = { COMPRESSION_ZLIB, 0, (uint32_t)csize, (uint32_t)outLen };
+            // iOS libcompression COMPRESSION_ZLIB 期待 zlib 头；raw deflate 用 COMPRESSION_RAW
+            cfg.algorithm = COMPRESSION_RAW;
+            compression_stream *stp = malloc(compression_stream_size());
+            if (compression_stream_init(stp, COMPRESSION_STREAM_DECODE, COMPRESSION_RAW) == COMPRESSION_STATUS_OK) {
+                stp->src_ptr = payload.bytes; stp->src_size = csize;
+                stp->dst_ptr = buf.mutableBytes; stp->dst_size = outLen;
+                compression_stream_process(stp, COMPRESSION_STREAM_FINALIZE);
+                outLen = outLen - stp->dst_size;
+                compression_stream_destroy(stp);
+                out = [buf subdataWithRange:NSMakeRange(0, outLen)];
+            }
+            free(stp);
+        }
+        if (out) [out writeToFile:outPath atomically:YES];
+    }
+}
+@end
+
+static XZImportDelegate *g_importDelegate = nil;
+static void fg_pickZip(void) {
+    UIViewController *vc = fg_topVC();
+    if (!vc) return;
+    API_AVAILABLE(ios(14.0))
+    UIDocumentPickerViewController *picker = [[UIDocumentPickerViewController alloc]
+        initForOpeningContentTypes:@[[UTType typeForFilenameExtension:@"zip"] ? [UTType typeForFilenameExtension:@"zip"] : UTType.data]
+        asCopy:YES];
+    picker.allowsMultipleSelection = NO;
+    g_importDelegate = [[XZImportDelegate alloc] init];
+    picker.delegate = g_importDelegate;
+    [vc presentViewController:picker animated:YES completion:nil];
+}
 
 // ===== 工具 =====
 static UIWindow *fg_keyWindow(void) {
