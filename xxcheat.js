@@ -112,11 +112,11 @@
         var oFree = BM.prototype.onFree;
         BM.prototype.onFree = function () { MONS.delete(this); return oFree.apply(this, arguments); };
         log('kill track ok');
-        // ---- 无CD：getSkillCD → 0.01（仅己方；_src 未初始化时视为己方） ----
+        // ---- 攻速：getSkillCD / 4（仅己方；_src 未初始化视为己方；原无CD需求可改回 0.01） ----
         var BS = CLS.skill;
         var oCD = BS.prototype.getSkillCD;
         BS.prototype.getSkillCD = function () {
-            if (F.cd && (!this._src || this._src.roleType !== ROLE_MONSTER)) return 0.01;
+            if (F.cd && (!this._src || this._src.roleType !== ROLE_MONSTER)) return oCD.call(this) * 0.25;
             return oCD.call(this);
         };
         log('cd patch ok');
