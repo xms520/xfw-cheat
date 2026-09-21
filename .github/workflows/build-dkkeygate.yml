@@ -1,0 +1,30 @@
+name: build-dkkeygate
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master, main ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build dylib
+        run: |
+          xcrun --sdk iphoneos --find clang
+          clang -arch arm64 -dynamiclib \
+            -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
+            -target arm64-apple-ios14.0 \
+            -fobjc-arc -fmodules -O2 \
+            -framework UIKit -framework Foundation -framework QuartzCore \
+            -o DKKeyGate.dylib DKKeyGate.m
+          ls -la DKKeyGate.dylib
+          file DKKeyGate.dylib
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DKKeyGate
+          path: DKKeyGate.dylib
