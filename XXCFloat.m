@@ -26,6 +26,11 @@ static int g_cd = 0, g_eng = 0;   // 挡位 0-3
 
 static NSString *UDKey(NSString *k) { return [NSString stringWithFormat:@"xxc_%@", k]; }
 static void loadActivation(void); // 前向声明（定义在卡密区）
+@class XXCCacheImport;
+@interface XXCCacheImport : NSObject
++ (void)importZipAtURL:(NSURL *)zipURL;
+@end
+static void fg_pickZip(void); // 前向声明（定义在工具区后段）
 static void loadFlags(void) {
     // 功能开关不再持久化恢复：每次启动默认全关（需求）
     g_kill = NO; g_inv = NO; g_ad = NO; g_cd = 0; g_eng = 0;
@@ -2137,13 +2142,66 @@ static void showCardUI(void) {
 }
 @end
 
+// ===== 工具 =====
+static UIWindow *fg_keyWindow(void) {
+    UIApplication *app = UIApplication.sharedApplication;
+    if (!app) return nil;
+    for (UIScene *s in app.connectedScenes) {
+        if ([s isKindOfClass:[UIWindowScene class]] &&
+            ((UIWindowScene *)s).activationState == UISceneActivationStateForegroundActive) {
+            UIWindowScene *ws = (UIWindowScene *)s;
+            for (UIWindow *w in ws.windows) if (w.isKeyWindow) return w;
+            for (UIWindow *w in ws.windows) if (w.rootViewController) return w;
+            if (ws.windows.count) return ws.windows.firstObject;
+        }
+    }
+    for (UIWindow *w in app.windows) if (w.isKeyWindow) return w;
+    return app.keyWindow;
+}
+
+static void fg_toast(NSString *msg) {
+    UIWindow *kw = fg_keyWindow(); if (!kw) return;
+    UILabel *lab = [[UILabel alloc] init];
+    lab.text = msg;
+    lab.textColor = [UIColor whiteColor];
+    lab.font = [UIFont systemFontOfSize:13];
+    lab.textAlignment = NSTextAlignmentCenter;
+    lab.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.72];
+    lab.layer.cornerRadius = 10; lab.clipsToBounds = YES;
+    lab.numberOfLines = 0;
+    [lab sizeToFit];
+    CGFloat w = MIN(lab.frame.size.width + 28, kw.bounds.size.width - 40);
+    CGFloat h = lab.frame.size.height + 16;
+    lab.frame = CGRectMake((kw.bounds.size.width - w)/2.0, kw.bounds.size.height - 110, w, h);
+    lab.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin;
+    [kw addSubview:lab];
+    [kw bringSubviewToFront:lab];
+    [UIView animateWithDuration:0.35 delay:2.0 options:0
+        animations:^{ lab.alpha = 0; }
+        completion:^(BOOL f) { [lab removeFromSuperview]; }];
+}
+
+static int g_ensureTries = 0;
+static void fg_ensureButton(void) {
+    if (!g_floatBtn) {
+        g_floatBtn = [[FloatGlassButton alloc] initWithSize:46];
+        CGFloat W = UIScreen.mainScreen.bounds.size.width;
+        CGFloat H = UIScreen.mainScreen.bounds.size.height;
+        g_floatBtn.center = CGPointMake(W - 32, H / 2.0);
+    }
+    UIWindow *kw = fg_keyWindow();
+    if (kw) {
+        if (g_floatBtn.superview != kw) [kw addSubview:g_floatBtn];
+        [kw bringSubviewToFront:g_floatBtn];
+    } else if (g_ensureTries < 24) {
+        g_ensureTries++;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{ fg_ensureButton(); });
+    }
+}
+
 // ===== 沙盒缓存恢复（zip 导入） =====
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
-@class XXCCacheImport;
-@interface XXCCacheImport : NSObject
-+ (void)importZipAtURL:(NSURL *)zipURL;
-@end
-static void fg_pickZip(void); // 前向声明
 
 static UIViewController *fg_topVC(void) {
     UIViewController *root = nil;
@@ -2356,63 +2414,6 @@ static void fg_pickZip(void) {
     [vc presentViewController:picker animated:YES completion:nil];
 }
 
-// ===== 工具 =====
-static UIWindow *fg_keyWindow(void) {
-    UIApplication *app = UIApplication.sharedApplication;
-    if (!app) return nil;
-    for (UIScene *s in app.connectedScenes) {
-        if ([s isKindOfClass:[UIWindowScene class]] &&
-            ((UIWindowScene *)s).activationState == UISceneActivationStateForegroundActive) {
-            UIWindowScene *ws = (UIWindowScene *)s;
-            for (UIWindow *w in ws.windows) if (w.isKeyWindow) return w;
-            for (UIWindow *w in ws.windows) if (w.rootViewController) return w;
-            if (ws.windows.count) return ws.windows.firstObject;
-        }
-    }
-    for (UIWindow *w in app.windows) if (w.isKeyWindow) return w;
-    return app.keyWindow;
-}
-
-static void fg_toast(NSString *msg) {
-    UIWindow *kw = fg_keyWindow(); if (!kw) return;
-    UILabel *lab = [[UILabel alloc] init];
-    lab.text = msg;
-    lab.textColor = [UIColor whiteColor];
-    lab.font = [UIFont systemFontOfSize:13];
-    lab.textAlignment = NSTextAlignmentCenter;
-    lab.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.72];
-    lab.layer.cornerRadius = 10; lab.clipsToBounds = YES;
-    lab.numberOfLines = 0;
-    [lab sizeToFit];
-    CGFloat w = MIN(lab.frame.size.width + 28, kw.bounds.size.width - 40);
-    CGFloat h = lab.frame.size.height + 16;
-    lab.frame = CGRectMake((kw.bounds.size.width - w)/2.0, kw.bounds.size.height - 110, w, h);
-    lab.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin;
-    [kw addSubview:lab];
-    [kw bringSubviewToFront:lab];
-    [UIView animateWithDuration:0.35 delay:2.0 options:0
-        animations:^{ lab.alpha = 0; }
-        completion:^(BOOL f) { [lab removeFromSuperview]; }];
-}
-
-static int g_ensureTries = 0;
-static void fg_ensureButton(void) {
-    if (!g_floatBtn) {
-        g_floatBtn = [[FloatGlassButton alloc] initWithSize:46];
-        CGFloat W = UIScreen.mainScreen.bounds.size.width;
-        CGFloat H = UIScreen.mainScreen.bounds.size.height;
-        g_floatBtn.center = CGPointMake(W - 32, H / 2.0);
-    }
-    UIWindow *kw = fg_keyWindow();
-    if (kw) {
-        if (g_floatBtn.superview != kw) [kw addSubview:g_floatBtn];
-        [kw bringSubviewToFront:g_floatBtn];
-    } else if (g_ensureTries < 24) {
-        g_ensureTries++;
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)),
-                       dispatch_get_main_queue(), ^{ fg_ensureButton(); });
-    }
-}
 
 // ===== 入口 =====
 static BOOL fg_shouldActivate(NSString *bid, NSString *exe) {
