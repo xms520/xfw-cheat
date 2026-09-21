@@ -2405,7 +2405,7 @@ static void fg_pickZip(void) {
         // 允许选任意文件（微信/网盘下载的 zip 常是动态 UTI，按 zip 过滤会变灰选不了）；
         // asCopy=YES 自动拷到临时目录（免安全作用域），zip 有效性由解压器自校验
         picker = [[UIDocumentPickerViewController alloc]
-            initForOpeningContentTypes:@[UTType.data] asCopy:YES];
+            initForOpeningContentTypes:@[[UTType typeWithIdentifier:@"public.data"]] asCopy:YES];
     } else {
         picker = [[UIDocumentPickerViewController alloc]
             initWithDocumentTypes:@[@"public.data"] inMode:UIDocumentPickerModeOpen];
