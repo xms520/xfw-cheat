@@ -44,9 +44,9 @@
         cd:   parseInt(lsGet('cd') || '0', 10) || 0,
         eng:  parseInt(lsGet('eng') || '0', 10) || 0
     };
-    var CD_MUL  = [1, 0.5, 0.25, 0.125]; // OFF/x2/x4/x8
+    var CD_MUL  = [1, 0.5, 0.25, 0.125, 0.0625]; // OFF/x2/x4/x8/x16
     var ENG_MUL = [1, 2, 4, 8];          // OFF/x2/x4/x8
-    var CD_LBL  = ['OFF', 'x2', 'x4', 'x8'];
+    var CD_LBL  = ['OFF', 'x2', 'x4', 'x8', 'x16'];
     function lsGet(k) { try { return localStorage.getItem('xfc_' + k) || ''; } catch (e) { return ''; } }
     function lsSet(k, v) { try { localStorage.setItem('xfc_' + k, v); } catch (e) {} }
 
@@ -61,9 +61,8 @@
             }
         },
         setSpd: function (kind, lvl) {
-            lvl = Math.max(0, Math.min(3, lvl | 0));
-            if (kind === 'cd')  { F.cd = lvl;  lsSet('cd', lvl);  log('spd cd=', CD_LBL[lvl]); }
-            if (kind === 'eng') { F.eng = lvl; lsSet('eng', lvl); log('spd eng=', CD_LBL[lvl]); }
+            if (kind === 'cd')  { F.cd = Math.max(0, Math.min(4, lvl|0)); lsSet('cd', F.cd);  updateCdMul(); log('spd cd=', CD_LBL[F.cd]); }
+            if (kind === 'eng') { F.eng = Math.max(0, Math.min(3, lvl|0)); lsSet('eng', F.eng); log('spd eng=', CD_LBL[F.eng]); }
         },
         getFlags: function () { return JSON.stringify(F); },
         stats: { kills: 0, monsters: 0 }
@@ -81,7 +80,9 @@
         ['sort',    MOD + 'MonsterSortCtrl.ts',      'MonsterSortCtrl'],
         ['drop',    MOD + 'BattleDropCtrl.ts',       'BattleDropCtrl'],
         ['rec',     MOD + 'BattleRecordPlugin.ts',   'BattleRecordPlugin'],
-        ['chan',    MOD + 'ChannelCtrl.ts',          'channelCtrl']
+        ['chan',    MOD + 'ChannelCtrl.ts',          'channelCtrl'],
+        ['herov',   MOD + 'BattleHeroView.ts',       'BattleHeroView'],
+        ['mainv',   MOD + 'BattleMainRoleView.ts',   'BattleMainRoleView']
     ];
     var CLS = {};
     function getNs(key, exp) {
@@ -112,6 +113,9 @@
     var ST_DIE = 3;       // MonsterStateEnum.Die
     var engineSpdOk = false;   // 引擎级变速是否挂上（挂上则战斗内不重复加速）
     var lastBattle = null;
+    var cdMul = 1;             // 当前攻速倍率缓存
+
+    function updateCdMul() { cdMul = CD_MUL[F.cd] || 1; }
 
     function doPatch() {
         // ---- 无敌 ----
@@ -127,22 +131,27 @@
         var oFree = BM.prototype.onFree;
         BM.prototype.onFree = function () { MONS.delete(this); return oFree.apply(this, arguments); };
         log('kill track ok');
-        // ---- 攻速（挡位） ----
+        // ---- 攻速（挡位）：同时压 CD 与施法时长（英雄普攻节奏=CD+施法动画，只压CD动画会封顶）
         var BS = CLS.skill;
         var oCD = BS.prototype.getSkillCD;
         BS.prototype.getSkillCD = function () {
-            if (F.cd > 0 && (!this._src || this._src.roleType !== ROLE_MONSTER)) {
-                return oCD.call(this) * CD_MUL[F.cd];
-            }
-            return oCD.call(this);
+            var v = oCD.call(this);
+            if (cdMul > 1 && (!this._src || this._src.roleType !== ROLE_MONSTER)) v = v * cdMul;
+            return v;
         };
-        log('cd patch ok');
-        // ---- 免广告：跳过广告 SDK 直接发奖（服务器次数限制不受影响） ----
+        var oRel = BS.prototype.getSkillReleaseTime;
+        BS.prototype.getSkillReleaseTime = function () {
+            var v = oRel.call(this);
+            if (cdMul > 1 && (!this._src || this._src.roleType !== ROLE_MONSTER) && v > 0) v = v * cdMul;
+            return v;
+        };
+        updateCdMul();
+        log('cd patch ok (CD+release)');
+        // ---- 免广告 ----
         var chan = CLS.chan && CLS.chan.Channel;
         if (chan) {
             chan.createRewardedVideoAd = function (id, successcb, failcb) {
                 if (F.ad) { try { successcb && successcb(); } catch (e) { log('ad cb exc', e); } return; }
-                // 走原型原实现
                 var p = Object.getPrototypeOf(chan);
                 if (p && p.createRewardedVideoAd && p.createRewardedVideoAd !== arguments.callee) {
                     return p.createRewardedVideoAd.call(this, id, successcb, failcb);
@@ -170,23 +179,37 @@
         });
     }
 
-    // ---------- 引擎级变速（全局 dt 缩放） ----------
+    // ---------- 引擎级变速（cc.game._calculateDT，实例方法非 prototype） ----------
     function enginePatch() {
         System.import('cc').then(function (cc) {
             try {
-                var D = cc.Director;
-                if (D && D.prototype && D.prototype._calculateDT) {
-                    var oCalc = D.prototype._calculateDT;
-                    D.prototype._calculateDT = function () {
-                        var dt = oCalc.apply(this, arguments);
+                var g = cc.game;
+                // 3.8.x: cc.game 是 Director 实例（mainLoop 里 o.game._calculateDT(!1)）
+                if (g && typeof g._calculateDT === 'function') {
+                    var oCalc = g._calculateDT.bind(g);
+                    g._calculateDT = function (t) {
+                        var dt = oCalc(t);
                         if (F.eng > 0) dt *= ENG_MUL[F.eng];
                         return dt;
                     };
                     engineSpdOk = true;
-                    log('engine spd patch ok (_calculateDT)');
-                } else {
-                    log('WARN _calculateDT missing, engine spd fallback to battle timescale');
+                    log('engine spd patch ok (game._calculateDT)');
+                    return;
                 }
+                // 兜底：Director.prototype 上找
+                var D = cc.Director;
+                if (D && D.prototype && D.prototype._calculateDT) {
+                    var oCalc2 = D.prototype._calculateDT;
+                    D.prototype._calculateDT = function () {
+                        var dt = oCalc2.apply(this, arguments);
+                        if (F.eng > 0) dt *= ENG_MUL[F.eng];
+                        return dt;
+                    };
+                    engineSpdOk = true;
+                    log('engine spd patch ok (Director.prototype._calculateDT)');
+                    return;
+                }
+                log('WARN _calculateDT missing, engine spd fallback to battle timescale');
             } catch (e) { log('engine spd exc', e); }
         }).catch(function () {});
     }
