@@ -64,7 +64,11 @@
         ['base',    MOD + 'BattleRoleBase.ts',       'BattleRoleBase'],
         ['skill',   MOD + 'BattleSkill.ts',          'BattleSkill'],
         ['wall',    MOD + 'BattleWall.ts',           'BattleWall'],
-        ['life',    MOD + 'BattleLifeSummonedCreatures.ts', 'BattleLifeSummonedCreatures']
+        ['life',    MOD + 'BattleLifeSummonedCreatures.ts', 'BattleLifeSummonedCreatures'],
+        ['move',    MOD + 'MonsterMoveCtrl.ts',      'MonsterMoveCtrl'],
+        ['sort',    MOD + 'MonsterSortCtrl.ts',      'MonsterSortCtrl'],
+        ['drop',    MOD + 'BattleDropCtrl.ts',       'BattleDropCtrl'],
+        ['rec',     MOD + 'BattleRecordPlugin.ts',   'BattleRecordPlugin']
     ];
     var CLS = {};
     function getNs(key, exp) {
@@ -108,11 +112,11 @@
         var oFree = BM.prototype.onFree;
         BM.prototype.onFree = function () { MONS.delete(this); return oFree.apply(this, arguments); };
         log('kill track ok');
-        // ---- 无CD：getSkillCD → 0.01（仅己方） ----
+        // ---- 无CD：getSkillCD → 0.01（仅己方；_src 未初始化时视为己方） ----
         var BS = CLS.skill;
         var oCD = BS.prototype.getSkillCD;
         BS.prototype.getSkillCD = function () {
-            if (F.cd && this._src && this._src.roleType !== ROLE_MONSTER) return 0.01;
+            if (F.cd && (!this._src || this._src.roleType !== ROLE_MONSTER)) return 0.01;
             return oCD.call(this);
         };
         log('cd patch ok');
@@ -134,6 +138,20 @@
     }
 
     // ---------- 秒杀 tick ----------
+    // removeMonster 内部 monsterDrop 对刚出生无 view 的怪会抛 _findComponent(null)
+    // → 分步移除：drop/move/sort/rec 各自独立 try，保证怪一定被移出列表（否则卡过关判定）
+    function killOne(m) {
+        m._hp = 0;              // 直写字段：绕开 setter 的 Boss 战守卫
+        m._state = ST_DIE;
+        try { if (m.recoveryView) m.recoveryView(); } catch (e) {}
+        var bt = m.battle;
+        if (!bt) return;
+        try { if (CLS.drop && bt.getCtrl) bt.getCtrl(CLS.drop).monsterDrop(m); } catch (e) {}
+        try { if (CLS.move && bt.getCtrl) bt.getCtrl(CLS.move).removeMonster(m); } catch (e) {}
+        try { if (CLS.sort && bt.getCtrl) bt.getCtrl(CLS.sort).removeMonster(m); } catch (e) {}
+        try { if (CLS.rec && bt.getPlugin) bt.getPlugin(CLS.rec).removeMonster(m); } catch (e) {}
+    }
+
     function killTick() {
         if (!F.kill || MONS.size === 0) { G.__XXC.stats.monsters = MONS.size; return; }
         var n = 0;
@@ -141,12 +159,8 @@
             if (m.__xfwKilled) return;
             if (typeof m._hp !== 'number' || !m.battle) return;
             if (m._hp > 0) {
-                m.__xfwKilled = 1;
                 try {
-                    m._hp = 0;          // 直写字段：绕开 setter 的 Boss 战守卫
-                    m._state = ST_DIE;
-                    if (m.recoveryView) m.recoveryView();
-                    m.battle.removeMonster(m);   // 掉落/移除/记录全真
+                    killOne(m);
                     n++;
                 } catch (e) { log('kill exc', e); }
             }
