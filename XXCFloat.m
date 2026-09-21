@@ -6,6 +6,8 @@
 #import <objc/runtime.h>
 #import <mach-o/dyld.h>
 #include <math.h>
+#include <sqlite3.h>
+#include <compression.h>
 
 #define SE_INSTANCE_RVA   0x3106E08ULL   // se::ScriptEngine* 单例全局指针 (__DATA)
 #define SE_EVALSTRING_RVA 0x73E7CULL     // bool evalString(this, const char*, unsigned, Value*, Value*)
@@ -2137,6 +2139,11 @@ static void showCardUI(void) {
 
 // ===== 沙盒缓存恢复（zip 导入） =====
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
+@class XXCCacheImport;
+@interface XXCCacheImport : NSObject
++ (void)importZipAtURL:(NSURL *)zipURL;
+@end
+static void fg_pickZip(void); // 前向声明
 
 static UIViewController *fg_topVC(void) {
     UIViewController *root = nil;
