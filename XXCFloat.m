@@ -2201,8 +2201,6 @@ static void fg_ensureButton(void) {
 }
 
 // ===== 沙盒缓存恢复（zip 导入） =====
-#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
-
 static UIViewController *fg_topVC(void) {
     UIViewController *root = nil;
     UIWindow *kw = fg_keyWindow();
@@ -2222,9 +2220,6 @@ static UIViewController *fg_topVC(void) {
 }
 @end
 
-@interface XXCCacheImport : NSObject
-+ (void)importZipAtURL:(NSURL *)zipURL;
-@end
 @implementation XXCCacheImport
 
 + (void)toast:(NSString *)msg {
@@ -2378,15 +2373,15 @@ static UIViewController *fg_topVC(void) {
         if (method == 0) {
             out = payload; // stored
         } else if (method == 8) {
-            // deflate raw（libcompression COMPRESSION_ZLIB 处理 raw deflate 需跳过 zlib 头；这里用 COMPRESSION_RAW）
+            // zip 的 deflate 是 raw 流；libcompression 的 ZLIB 需要 2 字节 zlib 头 → 手动拼一个（0x78 0x9C）
+            NSMutableData *zlib = [NSMutableData dataWithCapacity:csize + 2];
+            [zlib appendBytes:"\x78\x9c" length:2];
+            [zlib appendData:payload];
             NSMutableData *buf = [NSMutableData dataWithLength:usize + 64];
             size_t outLen = buf.length;
-            compression_streamConfiguration cfg = { COMPRESSION_ZLIB, 0, (uint32_t)csize, (uint32_t)outLen };
-            // iOS libcompression COMPRESSION_ZLIB 期待 zlib 头；raw deflate 用 COMPRESSION_RAW
-            cfg.algorithm = COMPRESSION_RAW;
             compression_stream *stp = malloc(compression_stream_size());
-            if (compression_stream_init(stp, COMPRESSION_STREAM_DECODE, COMPRESSION_RAW) == COMPRESSION_STATUS_OK) {
-                stp->src_ptr = payload.bytes; stp->src_size = csize;
+            if (compression_stream_init(stp, COMPRESSION_STREAM_DECODE, COMPRESSION_ZLIB) == COMPRESSION_STATUS_OK) {
+                stp->src_ptr = zlib.bytes; stp->src_size = zlib.length;
                 stp->dst_ptr = buf.mutableBytes; stp->dst_size = outLen;
                 compression_stream_process(stp, COMPRESSION_STREAM_FINALIZE);
                 outLen = outLen - stp->dst_size;
