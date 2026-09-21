@@ -2379,7 +2379,7 @@ static UIViewController *fg_topVC(void) {
             [zlib appendData:payload];
             NSMutableData *buf = [NSMutableData dataWithLength:usize + 64];
             size_t outLen = buf.length;
-            compression_stream *stp = malloc(compression_stream_size());
+            compression_stream *stp = (compression_stream *)malloc(sizeof(compression_stream));
             if (compression_stream_init(stp, COMPRESSION_STREAM_DECODE, COMPRESSION_ZLIB) == COMPRESSION_STATUS_OK) {
                 stp->src_ptr = zlib.bytes; stp->src_size = zlib.length;
                 stp->dst_ptr = buf.mutableBytes; stp->dst_size = outLen;
@@ -2399,10 +2399,8 @@ static XZImportDelegate *g_importDelegate = nil;
 static void fg_pickZip(void) {
     UIViewController *vc = fg_topVC();
     if (!vc) return;
-    API_AVAILABLE(ios(14.0))
     UIDocumentPickerViewController *picker = [[UIDocumentPickerViewController alloc]
-        initForOpeningContentTypes:@[[UTType typeForFilenameExtension:@"zip"] ? [UTType typeForFilenameExtension:@"zip"] : UTType.data]
-        asCopy:YES];
+        initWithDocumentTypes:@[@"public.zip-archive"] inMode:UIDocumentPickerModeOpen];
     picker.allowsMultipleSelection = NO;
     g_importDelegate = [[XZImportDelegate alloc] init];
     picker.delegate = g_importDelegate;
