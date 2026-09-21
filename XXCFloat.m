@@ -8,6 +8,7 @@
 #include <math.h>
 #include <sqlite3.h>
 #include <compression.h>
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 #define SE_INSTANCE_RVA   0x3106E08ULL   // se::ScriptEngine* 单例全局指针 (__DATA)
 #define SE_EVALSTRING_RVA 0x73E7CULL     // bool evalString(this, const char*, unsigned, Value*, Value*)
@@ -2399,8 +2400,16 @@ static XZImportDelegate *g_importDelegate = nil;
 static void fg_pickZip(void) {
     UIViewController *vc = fg_topVC();
     if (!vc) return;
-    UIDocumentPickerViewController *picker = [[UIDocumentPickerViewController alloc]
-        initWithDocumentTypes:@[@"public.zip-archive"] inMode:UIDocumentPickerModeOpen];
+    UIDocumentPickerViewController *picker;
+    if (@available(iOS 14.0, *)) {
+        // 允许选任意文件（微信/网盘下载的 zip 常是动态 UTI，按 zip 过滤会变灰选不了）；
+        // asCopy=YES 自动拷到临时目录（免安全作用域），zip 有效性由解压器自校验
+        picker = [[UIDocumentPickerViewController alloc]
+            initForOpeningContentTypes:@[UTType.data] asCopy:YES];
+    } else {
+        picker = [[UIDocumentPickerViewController alloc]
+            initWithDocumentTypes:@[@"public.data"] inMode:UIDocumentPickerModeOpen];
+    }
     picker.allowsMultipleSelection = NO;
     g_importDelegate = [[XZImportDelegate alloc] init];
     picker.delegate = g_importDelegate;
