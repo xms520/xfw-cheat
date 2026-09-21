@@ -1860,7 +1860,7 @@ static void showCardUI(void) {
     [ok setTitle:@"激 活" forState:UIControlStateNormal];
     ok.titleLabel.font = [UIFont boldSystemFontOfSize:16];
     ok.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleBottomMargin;
-    [ok addTarget:self action:@selector(fg_cardOk:) forControlEvents:UIControlEventTouchUpInside];
+    [ok addTarget:g_panel action:@selector(fg_cardOk:) forControlEvents:UIControlEventTouchUpInside];
     [mask addSubview:ok];
 
     UILabel *tip = [[UILabel alloc] initWithFrame:CGRectMake(30, 206, W - 60, 30)];
