@@ -1908,11 +1908,13 @@ static void injectTick(void) {
             // 左侧色点（每行独立颜色，视觉分组）
             UIView *dot = [[UIView alloc] initWithFrame:CGRectMake(14, 17, 8, 8)];
             dot.layer.cornerRadius = 4;
-            dot.backgroundColor = @([UIColor colorWithRed:1.0 green:0.36 blue:0.36 alpha:1.0],
-                                    [UIColor colorWithRed:0.4 green:0.8 blue:1.0 alpha:1.0],
-                                    [UIColor colorWithRed:1.0 green:0.78 blue:0.3 alpha:1.0],
-                                    [UIColor colorWithRed:0.55 green:0.9 blue:0.5 alpha:1.0],
-                                    [UIColor colorWithRed:0.8 green:0.55 blue:1.0 alpha:1.0])[i];
+            switch (i) {
+                case 0: dot.backgroundColor = [UIColor colorWithRed:1.0 green:0.36 blue:0.36 alpha:1.0]; break;
+                case 1: dot.backgroundColor = [UIColor colorWithRed:0.4 green:0.8 blue:1.0 alpha:1.0]; break;
+                case 2: dot.backgroundColor = [UIColor colorWithRed:1.0 green:0.78 blue:0.3 alpha:1.0]; break;
+                case 3: dot.backgroundColor = [UIColor colorWithRed:0.55 green:0.9 blue:0.5 alpha:1.0]; break;
+                default: dot.backgroundColor = [UIColor colorWithRed:0.8 green:0.55 blue:1.0 alpha:1.0]; break;
+            }
             dot.userInteractionEnabled = NO;
             [btn addSubview:dot];
             [btn addTarget:self action:@selector(fg_toggle:) forControlEvents:UIControlEventTouchUpInside];
