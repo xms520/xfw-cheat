@@ -1,0 +1,31 @@
+name: build-fkyg
+on:
+  push:
+    paths:
+      - 'FKYGCheat.m'
+      - '.github/workflows/build-fkyg.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 编译 FKYGCheat.dylib
+        run: |
+          SDK=$(xcrun --sdk iphoneos --show-sdk-path)
+          echo "SDK=$SDK"
+          xcrun -sdk iphoneos clang -arch arm64 -miphoneos-version-min=14.0 \
+            -fobjc-arc -fobjc-abi-version=2 -O2 -dynamiclib \
+            -framework Foundation -framework UIKit \
+            -o FKYGCheat.dylib FKYGCheat.m
+          otool -l FKYGCheat.dylib | grep -E "LC_ID_DYLIB|platform" | head -4
+          ls -la FKYGCheat.dylib
+          # 伪签名
+          curl -sL -o ldid https://github.com/ProcursusTeam/ldid/releases/latest/download/ldid_macosx_arm64s || true
+          chmod +x ldid 2>/dev/null && ./ldid -S FKYGCheat.dylib || true
+          codesign -dvv FKYGCheat.dylib 2>&1 | head -3 || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FKYGCheat-dylib
+          path: FKYGCheat.dylib
