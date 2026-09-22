@@ -1,0 +1,85 @@
+name: Il2CppDumper 解析
+on:
+  push:
+    paths:
+      - 'inputs/**'
+      - '.github/workflows/il2cppdumper.yml'
+  workflow_dispatch:
+    inputs:
+      note: { description: 重跑解析, required: false }
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '8.0.x' }
+      - name: 编译 Il2CppDumper 并复制 config.json
+        run: |
+          git clone --depth 1 https://github.com/Perfare/Il2CppDumper.git /tmp/Il2CppDumper
+          cd /tmp/Il2CppDumper
+          dotnet build Il2CppDumper/Il2CppDumper.csproj -c Release -f net8.0
+          IL2CPPBIN=$(find /tmp/Il2CppDumper -path "*/bin/Release/net8.0/Il2CppDumper.dll" | head -1 | xargs dirname)
+          echo "IL2CPPBIN=$IL2CPPBIN"
+          ls "$IL2CPPBIN"
+          cp /tmp/Il2CppDumper/Il2CppDumper/config.json "$IL2CPPBIN/" 2>/dev/null || \
+          find /tmp/Il2CppDumper -name "config.json" -path "*/Il2CppDumper/*" -exec cp {} "$IL2CPPBIN/" \;
+          ls "$IL2CPPBIN"
+          echo "$IL2CPPBIN" > /tmp/il2cppbin.env
+      - name: 构建反射启动器
+        run: |
+          mkdir -p /tmp/RunI2Cproj
+          cat > /tmp/RunI2Cproj/RunI2C.csproj << 'CEOF'
+          <Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework></PropertyGroup></Project>
+          CEOF
+          cat > /tmp/RunI2Cproj/Program.cs << 'CEOF2'
+          using System;
+          using System.Reflection;
+          using System.Linq;
+          class Go {
+            static void Main(string[] a) {
+              var rest = a.Skip(1).ToArray();
+              var asm = Assembly.LoadFrom(a[0]);
+              foreach (var t in asm.GetTypes()) {
+                var m = t.GetMethod("Main", BindingFlags.Public|BindingFlags.Static|BindingFlags.NonPublic,
+                    null, new[]{typeof(string[])}, null);
+                if (m != null) { m.Invoke(null, new object[]{rest}); return; }
+              }
+              throw new Exception("Main not found");
+            }
+          }
+          CEOF2
+          cd /tmp/RunI2Cproj && dotnet build -c Release -f net8.0
+          RUNNER=$(find /tmp/RunI2Cproj -path "*/bin/Release/net8.0/RunI2C.dll" | head -1)
+          RUNBIN=$(dirname "$RUNNER")
+          echo "RUNNER=$RUNNER RUNBIN=$RUNBIN"
+          # 把 Il2CppDumper 的 config.json 放到 runner 的 BaseDirectory
+          CFG=$(find /tmp/Il2CppDumper -name "config.json" -path "*/Il2CppDumper/*" | head -1)
+          echo "config src=$CFG"
+          [ -n "$CFG" ] && cp "$CFG" "$RUNBIN/config.json"
+          ls -la "$RUNBIN/"
+          echo "$RUNNER" > /tmp/runner.env
+      - name: 解析
+        run: |
+          IL2CPPBIN=$(cat /tmp/il2cppbin.env)
+          RUNNER=$(cat /tmp/runner.env)
+          echo "BIN=$IL2CPPBIN RUNNER=$RUNNER"
+          mkdir -p /tmp/dump
+          gunzip -c inputs/UnityFramework.gz > /tmp/UnityFramework
+          cd "$IL2CPPBIN"
+          # 优先反射跑（跳过 ReadKey）
+          dotnet "$RUNNER" "$IL2CPPBIN/Il2CppDumper.dll" /tmp/UnityFramework "$GITHUB_WORKSPACE/inputs/global-metadata.dat" /tmp/dump </dev/null || true
+          # 若 dump.cs 没生成，用官方二进制回退（可能因 ReadKey 挂，但先试）
+          if [ ! -f /tmp/dump/dump.cs ]; then
+            echo ">> falling back to raw binary"
+            (echo | timeout 120 "$IL2CPPBIN/Il2CppDumper" /tmp/UnityFramework "$GITHUB_WORKSPACE/inputs/global-metadata.dat" /tmp/dump) || true
+          fi
+          echo "=== dump dir ==="
+          ls -la /tmp/dump/
+          du -h /tmp/dump/* 2>/dev/null
+      - name: 上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: il2cppdump
+          path: /tmp/dump/
