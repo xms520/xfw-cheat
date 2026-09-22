@@ -17,7 +17,7 @@ jobs:
           echo "SDK=$SDK"
           xcrun -sdk iphoneos clang -arch arm64 -miphoneos-version-min=14.0 \
             -fobjc-arc -fobjc-abi-version=2 -O2 -dynamiclib \
-            -framework Foundation -framework UIKit \
+            -framework Foundation -framework UIKit -framework CoreGraphics \
             -o FKYGCheat.dylib FKYGCheat.m
           otool -l FKYGCheat.dylib | grep -E "LC_ID_DYLIB|platform" | head -4
           ls -la FKYGCheat.dylib
