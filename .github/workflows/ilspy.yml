@@ -1,0 +1,42 @@
+name: ILSpy 反编译热更dll
+on:
+  push:
+    paths:
+      - 'hotdll/**'
+      - '.github/workflows/ilspy.yml'
+  workflow_dispatch:
+
+jobs:
+  decompile:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '8.0.x' }
+      - name: 安装 ilspycmd
+        run: |
+          dotnet tool install -g ilspycmd --version 8.2.0.7535
+          echo "/home/runner/.dotnet/tools" >> $GITHUB_PATH
+      - name: 反编译
+        run: |
+          set -e
+          mkdir -p /tmp/out
+          ilspycmd hotdll/Hotfix.dll -p -o /tmp/out/hotfix --nested-directories --referenceonly 2>&1 | tail -3 || true
+          ilspycmd hotdll/Model.dll -p -o /tmp/out/model --nested-directories --referenceonly 2>&1 | tail -3 || true
+          echo "=== files ==="
+          find /tmp/out -name "*.cs" | wc -l
+          du -sh /tmp/out
+          cd /tmp/out && zip -qr /tmp/decomp.zip .
+          ls -la /tmp/decomp.zip
+      - name: 回推产物
+        run: |
+          mkdir -p decomp
+          cp /tmp/decomp.zip decomp/
+          # 同时把按命名空间聚合的源码目录也放进仓库（便于 API 浏览）
+          git config user.email "actions@github.com"
+          git config user.name "github-actions[bot]"
+          git add decomp/
+          git commit -m "decomp out [skip ci]" || echo "nothing to commit"
+          git push
