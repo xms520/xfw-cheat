@@ -23,18 +23,20 @@ jobs:
         run: |
           set -e
           mkdir -p /tmp/out
-          ilspycmd hotdll/Hotfix.dll -p -o /tmp/out/hotfix --nested-directories --referenceonly 2>&1 | tail -3 || true
-          ilspycmd hotdll/Model.dll -p -o /tmp/out/model --nested-directories --referenceonly 2>&1 | tail -3 || true
+          echo "=== ilspy version ==="
+          ilspycmd --version || true
+          echo "=== decompile Hotfix ==="
+          ilspycmd hotdll/Hotfix.dll -o /tmp/out/Hotfix.cs 2>&1 | tail -20 || echo HOTFIX_FAIL
+          echo "=== decompile Model ==="
+          ilspycmd hotdll/Model.dll -o /tmp/out/Model.cs 2>&1 | tail -20 || echo MODEL_FAIL
           echo "=== files ==="
-          find /tmp/out -name "*.cs" | wc -l
-          du -sh /tmp/out
-          cd /tmp/out && zip -qr /tmp/decomp.zip .
-          ls -la /tmp/decomp.zip
+          ls -la /tmp/out/
+          find /tmp/out -name "*.cs" -exec du -h {} \;
       - name: 回推产物
         run: |
           mkdir -p decomp
-          cp /tmp/decomp.zip decomp/
-          # 同时把按命名空间聚合的源码目录也放进仓库（便于 API 浏览）
+          cp /tmp/out/Hotfix.cs decomp/ 2>/dev/null || true
+          cp /tmp/out/Model.cs decomp/ 2>/dev/null || true
           git config user.email "actions@github.com"
           git config user.name "github-actions[bot]"
           git add decomp/
