@@ -11,8 +11,12 @@ on:
 jobs:
   dump:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/setup-dotnet@v4
         with: { dotnet-version: '8.0.x' }
       - name: 编译 Il2CppDumper 并复制 config.json
@@ -83,3 +87,15 @@ jobs:
         with:
           name: il2cppdump
           path: /tmp/dump/
+      - name: 回推产物到仓库
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "github-actions[bot]"
+          gzip -kf /tmp/dump/dump.cs
+          mkdir -p dumpout
+          cp /tmp/dump/dump.cs.gz dumpout/
+          cp /tmp/dump/dump.h dumpout/ 2>/dev/null || true
+          cp /tmp/dump/stringliteral.json dumpout/ 2>/dev/null || true
+          git add dumpout/
+          git commit -m "fk dump out [skip ci]" || echo "nothing to commit"
+          git push
