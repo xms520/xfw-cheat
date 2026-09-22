@@ -35,8 +35,9 @@ jobs:
       - name: 回推产物
         run: |
           mkdir -p decomp
-          cp /tmp/out/Hotfix.cs decomp/ 2>/dev/null || true
-          cp /tmp/out/Model.cs decomp/ 2>/dev/null || true
+          cp /tmp/out/Hotfix.cs/Hotfix.decompiled.cs decomp/Hotfix.cs 2>/dev/null || true
+          cp /tmp/out/Model.cs/Model.decompiled.cs decomp/Model.cs 2>/dev/null || true
+          ls -la decomp/
           git config user.email "actions@github.com"
           git config user.name "github-actions[bot]"
           git add decomp/
