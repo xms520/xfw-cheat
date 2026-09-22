@@ -341,6 +341,7 @@ static void ui_toggle_panel(void);
 static void fk_make_ui(void);
 
 @interface FKTickBox : NSObject
++ (instancetype)shared;
 - (void)noop;
 - (void)tapKill;
 - (void)tapInv;
