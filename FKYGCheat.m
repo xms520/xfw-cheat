@@ -289,14 +289,22 @@ static void *fk_argi(int v)    { int32_t  *p = &g_ai[g_ain++ & 7]; *p = v; retur
 static void *fk_argl(long v)   { int64_t  *p = &g_al[g_aln++ & 7]; *p = v; return p; }
 static void *fk_argnt(uint16_t v){ uint16_t *p = &g_au[g_aun++ & 7]; *p = v; return p; }
 
+// v12: 安全类名（垃圾类对象的 name 指针不可信，strstr/flog %s 解引用前必须探针）
+static const char *fk_safe_name(void *cls) {
+    if (!cls || !fk_readable(cls, 0x18)) return NULL;
+    const char *cn = ((const char*(*)(void*))p_class_get_name)(cls);
+    if (!cn || !fk_readable(cn, 12)) return NULL;
+    return cn;
+}
+
 // 反射枚举 Dictionary<long,Entity> values（get_Values + CopyTo，零字典布局硬编码）
 static int fk_dict_fail_log = 0;
 static int fk_dict_values(void *dict, void **out, int max) {
     if (!dict || !fk_readable(dict, 0x58)) return 0; // 字典对象可读性探针
     void *cls = ((void*(*)(void*))p_object_get_class)(dict);
-    const char *cn = cls ? ((const char*(*)(void*))p_class_get_name)(cls) : NULL;
+    const char *cn = fk_safe_name(cls);
     if (!cn || !strstr(cn, "Dictionary")) {
-        if (fk_dict_fail_log++ < 5) flog(@"dict not Dictionary: ptr=%p cls=%s", dict, cn ? cn : "null");
+        if (fk_dict_fail_log++ < 5) flog(@"dict not Dictionary: ptr=%p cls=%s", dict, cn ? cn : "?");
         return 0;
     }
     void *mGV = fk_meth(cls, "get_Values", 0);
@@ -414,8 +422,17 @@ static void fk_tick(void) {
         void *mgr = NULL;
         ((void(*)(void*,void*))p_field_static_get_value)(g_fieldCSCInst, &mgr);
         if (!mgr) { g_status = 1; if (ld) flog(@"t%d CSC.Instance=NULL", diag); ui_refresh(); return; }
+        // v12: mgr/root 必须是完全初始化的实体（instanceId!=0），ET 初始化中间态的池残留会被 DFS 扫成垃圾
+        if (!fk_readable(mgr, 0x58) || g_instId(mgr) == 0) {
+            g_status = 1;
+            if (ld) flog(@"t%d CSC not fully init", diag);
+            ui_refresh(); return;
+        }
         void *root = *(void**)((char*)mgr + g_offDomain);
-        if (!root) { if (ld) flog(@"t%d root=NULL", diag); return; }
+        if (!root || !fk_readable(root, 0x58) || g_instId(root) == 0) {
+            if (ld) flog(@"t%d root invalid", diag);
+            return;
+        }
 
         // 缓存验证：可读 + InstanceId != 0 视为存活
         if (g_cMainComp && (!fk_readable(g_cMainComp, 0x18) || g_instId(g_cMainComp) == 0)) g_cMainComp = NULL;
