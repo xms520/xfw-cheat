@@ -314,32 +314,6 @@ static void *fk_dfs_find(void *e, void *targetCls, int depth) {
     return NULL;
 }
 
-static void *fk_boxi(int v)      { return g_clsInt32 ? ((void*(*)(void*,void*))p_value_box)(g_clsInt32, &v) : NULL; }
-static void *fk_boxl(long v)     { return g_clsInt64 ? ((void*(*)(void*,void*))p_value_box)(g_clsInt64, &v) : NULL; }
-static void *fk_boxnt(uint16_t v){ return g_clsNumericType ? ((void*(*)(void*,void*))p_value_box)(g_clsNumericType, &v) : NULL; }
-
-// 反射枚举 Dictionary<long,Entity> values（get_Values + CopyTo，零字典布局硬编码）
-static int fk_dict_values(void *dict, void **out, int max) {
-    if (!dict) return 0;
-    void *cls = ((void*(*)(void*))p_object_get_class)(dict);
-    void *mGV = fk_meth(cls, "get_Values", 0);
-    if (!mGV) return 0;
-    void *vc = fk_invoke(mGV, dict, NULL);
-    if (!vc) return 0;
-    void *vcCls = ((void*(*)(void*))p_object_get_class)(vc);
-    void *mCopy = fk_meth(vcCls, "CopyTo", 2);
-    void *mCnt  = fk_meth(cls, "get_Count", 0);
-    if (!mCopy || !mCnt) return 0;
-    int n = fk_box_get_int(fk_invoke(mCnt, dict, NULL));
-    if (n <= 0 || n > 4096) return 0;
-    void *arr = ((void*(*)(void*,long))p_array_new)(g_clsEntity, n);
-    if (!arr) return 0;
-    fk_invoke(mCopy, vc, (void*[]){arr, fk_boxi(0)});
-    void **elems = (void**)((char*)arr + 0x20);
-    int c = 0;
-    for (int i = 0; i < n && c < max; i++) if (elems[i]) out[c++] = elems[i];
-    return c;
-}
 
 // v6 主 tick：DFS 找 MainUnitComponent（缓存 + InstanceId 存活验证）
 static void *g_cMainComp = NULL;      // 缓存的 MainUnitComponent 实例
