@@ -1,0 +1,31 @@
+name: build-gyzw-cheat
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'gyzw/**'
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build dylib
+        run: |
+          cd gyzw
+          xcrun -sdk iphoneos clang -arch arm64 \
+            -target arm64-apple-ios14.0 \
+            -dynamiclib -fobjc-arc -O2 \
+            -framework UIKit -framework Foundation -framework CoreGraphics -framework QuartzCore \
+            -o GYZWCheat.dylib GYZWCheat.m
+          file GYZWCheat.dylib
+          ls -la GYZWCheat.dylib
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GYZWCheat.dylib
+          path: gyzw/GYZWCheat.dylib
