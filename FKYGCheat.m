@@ -38,7 +38,7 @@ static void *g_uf = NULL;
 static void *p_domain_get, *p_domain_get_assemblies, *p_assembly_get_image, *p_image_get_name;
 static void *p_class_from_name, *p_class_get_type, *p_class_get_field_from_name, *p_class_get_method_from_name;
 static void *p_field_get_offset, *p_field_static_get_value, *p_type_get_object, *p_runtime_invoke;
-static void *p_object_new, *p_value_box, *p_object_get_class, *p_class_get_name;
+static void *p_object_new, *p_value_box, *p_object_get_class, *p_class_get_name, *p_array_new;
 
 static BOOL load_il2cpp_api(void) {
     for (uint32_t i = 0; i < _dyld_image_count(); i++) {
@@ -65,6 +65,7 @@ static BOOL load_il2cpp_api(void) {
     p_value_box                 = dlsym(g_uf, "il2cpp_value_box");
     p_object_get_class          = dlsym(g_uf, "il2cpp_object_get_class");
     p_class_get_name            = dlsym(g_uf, "il2cpp_class_get_name");
+    p_array_new                 = dlsym(g_uf, "il2cpp_array_new");
     return p_runtime_invoke && p_class_from_name && p_domain_get && p_field_static_get_value;
 }
 
@@ -118,7 +119,7 @@ static void *fk_typeobj(void *cls) {
 
 #pragma mark - 解析缓存
 static void *g_clsEntity, *g_clsMainUnitComp, *g_clsUnitComp, *g_clsNumericComp, *g_clsNumericType;
-static void *g_clsDamage, *g_clsBattleComp;
+static void *g_clsDamage, *g_clsBattleComp, *g_clsBSM;
 static void *g_mGetComponent, *g_mCurrentScene, *g_mHurt, *g_mIsDead, *g_mGetCamp;
 static void *g_mSetNoEvent, *g_mGetAsLong, *g_mGetTS, *g_mSetTS;
 static void *g_fieldCSCInst;
@@ -178,9 +179,10 @@ static BOOL fk_resolve(void) {
     g_clsNumericType  = fk_class("ET", "NumericType");
     g_clsDamage       = fk_class("ET", "Damage");
     g_clsBattleComp   = fk_class("ET", "BattleComponent");
-    if (!g_clsMainUnitComp || !g_clsUnitComp || !g_clsNumericComp || !g_clsNumericType || !g_clsDamage || !g_clsBattleComp) {
-        if (g_resolveTry % 15 == 0) flog(@"cls miss main=%p unit=%p num=%p nt=%p dmg=%p bat=%p",
-            g_clsMainUnitComp, g_clsUnitComp, g_clsNumericComp, g_clsNumericType, g_clsDamage, g_clsBattleComp);
+    g_clsBSM          = fk_class("ET", "BattleSceneManagerComponent");
+    if (!g_clsMainUnitComp || !g_clsUnitComp || !g_clsNumericComp || !g_clsNumericType || !g_clsDamage || !g_clsBattleComp || !g_clsBSM) {
+        if (g_resolveTry % 15 == 0) flog(@"cls miss main=%p unit=%p num=%p nt=%p dmg=%p bat=%p bsm=%p",
+            g_clsMainUnitComp, g_clsUnitComp, g_clsNumericComp, g_clsNumericType, g_clsDamage, g_clsBattleComp, g_clsBSM);
         return NO; // 热更 dll 尚未加载
     }
     g_offMainUnitRef = fk_foff(g_clsMainUnitComp, "unitRef");
@@ -242,52 +244,93 @@ static void *fk_boxi(int v)      { return g_clsInt32 ? ((void*(*)(void*,void*))p
 static void *fk_boxl(long v)     { return g_clsInt64 ? ((void*(*)(void*,void*))p_value_box)(g_clsInt64, &v) : NULL; }
 static void *fk_boxnt(uint16_t v){ return g_clsNumericType ? ((void*(*)(void*,void*))p_value_box)(g_clsNumericType, &v) : NULL; }
 
+// 反射枚举 Dictionary<long,Entity> values（get_Values + CopyTo，零字典布局硬编码）
+static int fk_dict_values(void *dict, void **out, int max) {
+    if (!dict) return 0;
+    void *cls = ((void*(*)(void*))p_object_get_class)(dict);
+    void *mGV = fk_meth(cls, "get_Values", 0);
+    if (!mGV) return 0;
+    void *vc = fk_invoke(mGV, dict, NULL);
+    if (!vc) return 0;
+    void *vcCls = ((void*(*)(void*))p_object_get_class)(vc);
+    void *mCopy = fk_meth(vcCls, "CopyTo", 2);
+    void *mCnt  = fk_meth(cls, "get_Count", 0);
+    if (!mCopy || !mCnt) return 0;
+    int n = fk_box_get_int(fk_invoke(mCnt, dict, NULL));
+    if (n <= 0 || n > 4096) return 0;
+    void *arr = ((void*(*)(void*,long))p_array_new)(g_clsEntity, n);
+    if (!arr) return 0;
+    fk_invoke(mCopy, vc, (void*[]){arr, fk_boxi(0)});
+    void **elems = (void**)((char*)arr + 0x20);
+    int c = 0;
+    for (int i = 0; i < n && c < max; i++) if (elems[i]) out[c++] = elems[i];
+    return c;
+}
+
 static void ui_refresh(void);
 
 #pragma mark - 主 tick（主线程 1s）
+// v4 场景定位（dump.cs 实证）：
+//   CSC.Instance.domain = clientScene
+//   clientScene.GetComponent(BattleSceneManagerComponent)
+//   -> 其 children = 全部战斗 Scene（CreateBattleScene 时 parent=BSM）
+//   -> 每个 candidate: GetComponent(MainUnitComponent) 非空 = 战斗场景
+//   -> unitRef.entity = 主角 -> UnitComponent.FightUnits
 static void fk_tick(void) {
     @autoreleasepool {
         if (!g_resolved && !fk_resolve()) { g_status = 0; ui_refresh(); return; }
 
-        // 1. ClientSceneManagerComponent.Instance 静态字段
         void *mgr = NULL;
         ((void(*)(void*,void*))p_field_static_get_value)(g_fieldCSCInst, &mgr);
-        if (!mgr) { g_status = 1; ui_refresh(); return; } // 游戏未进主场景
+        if (!mgr) { g_status = 1; ui_refresh(); return; }
 
-        // 2. clientScene = mgr.domain
         void *clientScene = *(void**)((char*)mgr + g_offDomain);
         if (!clientScene) return;
 
-        // 3. cur = CurrentScene(clientScene)
-        void *cur = fk_invoke(g_mCurrentScene, NULL, (void*[]){clientScene});
-        if (!cur) return;
+        // 1. BattleSceneManagerComponent = clientScene 的组件
+        void *tBSM = fk_typeobj(g_clsBSM);
+        void *bsm = tBSM ? fk_invoke(g_mGetComponent, clientScene, (void*[]){tBSM}) : NULL;
+        if (!bsm) { g_status = 1; ui_refresh(); return; }
 
-        // 4. MainUnitComponent -> 主角
-        void *mainComp = fk_invoke(g_mGetComponent, cur, (void*[]){fk_typeobj(g_clsMainUnitComp)});
+        // 2. 枚举 bsm.children = 战斗场景列表
+        void *kids[64];
+        int nk = 0;
+        long offChildren = fk_foff(g_clsEntity, "children");
+        if (offChildren >= 0) {
+            void *dict = *(void**)((char*)bsm + offChildren);
+            nk = fk_dict_values(dict, kids, 64);
+        }
+
+        // 3. 找 MainUnitComponent 非空的场景 = 战斗场景
+        void *tMain = fk_typeobj(g_clsMainUnitComp);
+        void *battleScene = NULL, *mainComp = NULL;
+        for (int i = 0; i < nk; i++) {
+            void *mc = fk_invoke(g_mGetComponent, kids[i], (void*[]){tMain});
+            if (mc) { battleScene = kids[i]; mainComp = mc; break; }
+        }
+
         void *mainUnit = NULL;
         if (mainComp && g_offMainUnitRef >= 0) {
             // EntityRef<Unit>{ long instanceId@0x0, Unit entity@0x8 }
             mainUnit = *(void**)((char*)mainComp + g_offMainUnitRef + 0x8);
-            if (((uintptr_t)mainUnit & 0x7) != 0) mainUnit = NULL; // 指针对齐校验
+            if (((uintptr_t)mainUnit & 0x7) != 0) mainUnit = NULL;
         }
 
-        // 5. battleScene = mainUnit.domain
-        void *battleScene = cur;
-        if (mainUnit) {
-            void *dom = *(void**)((char*)mainUnit + g_offDomain);
-            if (dom) battleScene = dom;
+        // 4. BattleComponent.IsFighting
+        BOOL fighting = NO;
+        if (battleScene) {
+            void *bc = fk_invoke(g_mGetComponent, battleScene, (void*[]){fk_typeobj(g_clsBattleComp)});
+            if (bc && g_offIsFighting >= 0) fighting = *(BOOL*)((char*)bc + g_offIsFighting);
         }
-
-        // 6. BattleComponent.IsFighting
-        void *bc = fk_invoke(g_mGetComponent, battleScene, (void*[]){fk_typeobj(g_clsBattleComp)});
-        BOOL fighting = (bc && g_offIsFighting >= 0) ? (*(BOOL*)((char*)bc + g_offIsFighting)) : NO;
         g_status = fighting ? 2 : 1;
+        static int diag = 0;
+        if (++diag % 10 == 1)
+            flog(@"tick bsm=%p nk=%d bs=%p main=%p fighting=%d", bsm, nk, battleScene, mainUnit, fighting);
 
-        // 7. 加速：场景重建后重新应用
+        // 5. 加速
         if (fighting && g_spd > 0 && battleScene != g_lastTSscene) {
             fk_invoke(g_mSetTS, NULL, (void*[]){battleScene, fk_boxi(SPD_N[g_spd])});
-            void *chk = fk_invoke(g_mGetTS, NULL, (void*[]){battleScene});
-            int now = fk_box_get_int(chk);
+            int now = fk_box_get_int(fk_invoke(g_mGetTS, NULL, (void*[]){battleScene}));
             if (now == SPD_N[g_spd]) { g_lastTSscene = battleScene; flog(@"timeScale=%d ok", now); }
             else flog(@"setTS fail cur=%d", now);
         } else if (g_spd == 0) {
@@ -297,14 +340,14 @@ static void fk_tick(void) {
         g_lastKilled = 0; g_lastHealed = 0;
         if (!fighting) { ui_refresh(); return; }
 
-        // 8. UnitComponent.FightUnits
+        // 6. UnitComponent.FightUnits
         void *uc = fk_invoke(g_mGetComponent, battleScene, (void*[]){fk_typeobj(g_clsUnitComp)});
         if (!uc || g_offFightUnits < 0) { ui_refresh(); return; }
-        void *arr = *(void**)((char*)uc + g_offFightUnits);   // List<Unit>._items
+        void *arr = *(void**)((char*)uc + g_offFightUnits);
         if (!arr) { ui_refresh(); return; }
-        int32_t size = *(int32_t*)((char*)arr + 0x18);        // List._size 与数组 max_length 同源
+        int32_t size = *(int32_t*)((char*)arr + 0x18);
         if (size <= 0) { ui_refresh(); return; }
-        void **elems = (void**)((char*)arr + 0x20);           // 数组数据区 @0x20
+        void **elems = (void**)((char*)arr + 0x20);
         if (size > 256) size = 256;
 
         int mainCamp = 0;
@@ -319,7 +362,7 @@ static void fk_tick(void) {
             int camp = fk_box_get_int(fk_invoke(g_mGetCamp, NULL, (void*[]){u}));
             BOOL enemy = (mainUnit != NULL) && (camp != mainCamp);
 
-            // 秒杀：敌方走官方 Hurt 管线（护盾/事件/死亡/掉落全真）
+            // 秒杀：敌方走官方 Hurt 管线
             if (atomic_load(&g_kill) && enemy) {
                 void *dmg = ((void*(*)(void*))p_object_new)(g_clsDamage);
                 if (dmg) {
@@ -329,7 +372,7 @@ static void fk_tick(void) {
                     killed++;
                 }
             }
-            // 无敌：己方锁满血（SetNoEvent 不刷事件，血条显示不变但不死）
+            // 无敌：己方锁满血
             if (atomic_load(&g_inv) && !enemy) {
                 void *nc = fk_invoke(g_mGetComponent, u, (void*[]){tNum});
                 if (nc) {
