@@ -270,43 +270,52 @@ static int fk_dict_values(void *dict, void **out, int max) {
 static void ui_refresh(void);
 
 #pragma mark - 主 tick（主线程 1s）
-// v4 场景定位（dump.cs 实证）：
-//   CSC.Instance.domain = clientScene
-//   clientScene.GetComponent(BattleSceneManagerComponent)
-//   -> 其 children = 全部战斗 Scene（CreateBattleScene 时 parent=BSM）
-//   -> 每个 candidate: GetComponent(MainUnitComponent) 非空 = 战斗场景
-//   -> unitRef.entity = 主角 -> UnitComponent.FightUnits
+// v5 场景定位（双兜底）：
+//   CSC.Instance.domain = Root.Scene
+//   候选A: Root.Scene 自身（启动装配的 BSM）
+//   候选B: CurrentScenesComponent.Scene（CreateClientScene 后的当前客户端场景）
+//   每个 clientScene.GetComponent(BSM).children = 战斗 Scene 列表
+//   candidate 里 GetComponent(MainUnitComponent) 非空 = 战斗场景
 static void fk_tick(void) {
     @autoreleasepool {
         if (!g_resolved && !fk_resolve()) { g_status = 0; ui_refresh(); return; }
 
+        static int diag = 0; diag++;
+        BOOL ld = (diag <= 6 || diag % 10 == 1); // 前6秒全打，之后每10秒
+
         void *mgr = NULL;
         ((void(*)(void*,void*))p_field_static_get_value)(g_fieldCSCInst, &mgr);
-        if (!mgr) { g_status = 1; ui_refresh(); return; }
+        if (!mgr) { g_status = 1; if (ld) flog(@"t%d CSC.Instance=NULL", diag); ui_refresh(); return; }
 
         void *clientScene = *(void**)((char*)mgr + g_offDomain);
-        if (!clientScene) return;
+        if (!clientScene) { if (ld) flog(@"t%d clientScene=NULL", diag); return; }
 
-        // 1. BattleSceneManagerComponent = clientScene 的组件
-        void *tBSM = fk_typeobj(g_clsBSM);
-        void *bsm = tBSM ? fk_invoke(g_mGetComponent, clientScene, (void*[]){tBSM}) : NULL;
-        if (!bsm) { g_status = 1; ui_refresh(); return; }
+        // 候选 clientScene：Root.Scene + CurrentScene()
+        void *curCS = fk_invoke(g_mCurrentScene, NULL, (void*[]){clientScene});
+        void *cands[2] = { clientScene, curCS };
 
-        // 2. 枚举 bsm.children = 战斗场景列表
-        void *kids[64];
-        int nk = 0;
+        // 收集全部 BSM 的 children（战斗场景候选）
+        void *scenes[96]; int ns = 0;
         long offChildren = fk_foff(g_clsEntity, "children");
-        if (offChildren >= 0) {
-            void *dict = *(void**)((char*)bsm + offChildren);
-            nk = fk_dict_values(dict, kids, 64);
+        for (int c = 0; c < 2; c++) {
+            if (!cands[c]) continue;
+            if (c == 1 && cands[1] == cands[0]) continue; // 去重
+            void *bsm = fk_invoke(g_mGetComponent, cands[c], (void*[]){fk_typeobj(g_clsBSM)});
+            if (!bsm) continue;
+            if (offChildren >= 0) {
+                void *dict = *(void**)((char*)bsm + offChildren);
+                ns += fk_dict_values(dict, scenes + ns, 96 - ns);
+            }
         }
+        if (diag <= 6 && ns == 0)
+            flog(@"t%d root=%p cur=%p bsm_children_empty", diag, clientScene, curCS);
 
-        // 3. 找 MainUnitComponent 非空的场景 = 战斗场景
+        // 找 MainUnitComponent 非空的场景
         void *tMain = fk_typeobj(g_clsMainUnitComp);
         void *battleScene = NULL, *mainComp = NULL;
-        for (int i = 0; i < nk; i++) {
-            void *mc = fk_invoke(g_mGetComponent, kids[i], (void*[]){tMain});
-            if (mc) { battleScene = kids[i]; mainComp = mc; break; }
+        for (int i = 0; i < ns; i++) {
+            void *mc = fk_invoke(g_mGetComponent, scenes[i], (void*[]){tMain});
+            if (mc) { battleScene = scenes[i]; mainComp = mc; break; }
         }
 
         void *mainUnit = NULL;
@@ -316,16 +325,15 @@ static void fk_tick(void) {
             if (((uintptr_t)mainUnit & 0x7) != 0) mainUnit = NULL;
         }
 
-        // 4. BattleComponent.IsFighting
+        // BattleComponent.IsFighting
         BOOL fighting = NO;
         if (battleScene) {
             void *bc = fk_invoke(g_mGetComponent, battleScene, (void*[]){fk_typeobj(g_clsBattleComp)});
             if (bc && g_offIsFighting >= 0) fighting = *(BOOL*)((char*)bc + g_offIsFighting);
         }
         g_status = fighting ? 2 : 1;
-        static int diag = 0;
-        if (++diag % 10 == 1)
-            flog(@"tick bsm=%p nk=%d bs=%p main=%p fighting=%d", bsm, nk, battleScene, mainUnit, fighting);
+        if (ld) flog(@"t%d cs=%p cur=%p nk=%d bs=%p main=%p fight=%d",
+                     diag, clientScene, curCS, ns, battleScene, mainUnit, fighting);
 
         // 5. 加速
         if (fighting && g_spd > 0 && battleScene != g_lastTSscene) {
