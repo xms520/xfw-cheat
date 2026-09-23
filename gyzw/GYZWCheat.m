@@ -326,7 +326,7 @@ static void g_togglePanel(void) {
     UILabel *st = [[UILabel alloc] initWithFrame:CGRectMake(12, 48, pw - 24, 18)];
     st.tag = 9901;
     st.text = @"初始化…";
-    st.textColor = [UIColor colorWithRed:0.55 green:0.85 alpha:1 alpha:1];
+    st.textColor = [UIColor colorWithRed:0.55 green:0.85 blue:1 alpha:1];
     st.font = [UIFont systemFontOfSize:11];
     [panel addSubview:st];
 
