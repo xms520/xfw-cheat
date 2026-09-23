@@ -266,9 +266,14 @@ static int g_status = 0; // 0=未就绪 1=已就绪 2=战斗中
 #define NT_MaxHp     3
 #define NT_CurrentHp 1001
 
-static void *fk_boxi(int v)      { return g_clsInt32 ? ((void*(*)(void*,void*))p_value_box)(g_clsInt32, &v) : NULL; }
-static void *fk_boxl(long v)     { return g_clsInt64 ? ((void*(*)(void*,void*))p_value_box)(g_clsInt64, &v) : NULL; }
-static void *fk_boxnt(uint16_t v){ return g_clsNumericType ? ((void*(*)(void*,void*))p_value_box)(g_clsNumericType, &v) : NULL; }
+// v8 关键修复：runtime_invoke 值类型参数必须传【未装箱数据指针】（非装箱对象）
+// 之前传装箱对象 → 参数被当数据指针解引用（对象头被读成 int/long/struct）→ 全部功能静默失效
+static int32_t  g_ai[8]; static int g_ain = 0;
+static int64_t  g_al[8]; static int g_aln = 0;
+static uint16_t g_au[8]; static int g_aun = 0;
+static void *fk_argi(int v)    { int32_t  *p = &g_ai[g_ain++ & 7]; *p = v; return p; }
+static void *fk_argl(long v)   { int64_t  *p = &g_al[g_aln++ & 7]; *p = v; return p; }
+static void *fk_argnt(uint16_t v){ uint16_t *p = &g_au[g_aun++ & 7]; *p = v; return p; }
 
 // 反射枚举 Dictionary<long,Entity> values（get_Values + CopyTo，零字典布局硬编码）
 static int fk_dict_fail_log = 0;
@@ -298,7 +303,7 @@ static int fk_dict_values(void *dict, void **out, int max) {
     if (n <= 0 || n > 4096) return 0;
     void *arr = ((void*(*)(void*,long))p_array_new)(g_clsEntity, n);
     if (!arr) return 0;
-    fk_invoke(mCopy, vc, (void*[]){arr, fk_boxi(0)});
+    fk_invoke(mCopy, vc, (void*[]){arr, fk_argi(0)});
     void **elems = (void**)((char*)arr + 0x20);
     int c = 0;
     for (int i = 0; i < n && c < max; i++) if (elems[i]) out[c++] = elems[i];
@@ -402,7 +407,7 @@ static void fk_tick(void) {
 
         // 加速：场景重建后重新应用
         if (fighting && g_spd > 0 && battleScene != g_lastTSscene) {
-            fk_invoke(g_mSetTS, NULL, (void*[]){battleScene, fk_boxi(SPD_N[g_spd])});
+            fk_invoke(g_mSetTS, NULL, (void*[]){battleScene, fk_argi(SPD_N[g_spd])});
             int now = fk_box_get_int(fk_invoke(g_mGetTS, NULL, (void*[]){battleScene}));
             if (now == SPD_N[g_spd]) { g_lastTSscene = battleScene; flog(@"timeScale=%d ok", now); }
             else flog(@"setTS fail cur=%d", now);
@@ -434,23 +439,23 @@ static void fk_tick(void) {
             int camp = fk_box_get_int(fk_invoke(g_mGetCamp, NULL, (void*[]){u}));
             BOOL enemy = (mainUnit != NULL) && (camp != mainCamp);
 
-            // 秒杀：敌方走官方 Hurt 管线
+            // 秒杀：敌方走官方 Hurt 管线（Damage 值类型参数 = 未装箱栈数据）
             if (atomic_load(&g_kill) && enemy) {
-                void *dmg = ((void*(*)(void*))p_object_new)(g_clsDamage);
-                if (dmg) {
-                    *(long*)((char*)dmg + g_offDmgValue) = 1000000000L;
-                    if (g_offDmgSource >= 0 && mainUnit) *(void**)((char*)dmg + g_offDmgSource) = mainUnit;
-                    fk_invoke(g_mHurt, NULL, (void*[]){u, dmg});
-                    killed++;
-                }
+                uint8_t dmg[64];
+                memset(dmg, 0, sizeof(dmg));
+                *(long*)((char*)dmg + g_offDmgValue) = 1000000000L;
+                if (g_offDmgSource >= 0 && mainUnit)
+                    *(void**)((char*)dmg + g_offDmgSource) = mainUnit;
+                fk_invoke(g_mHurt, NULL, (void*[]){u, dmg});
+                killed++;
             }
-            // 无敌：己方锁满血（class 指针直查 NumericComponent）
+            // 无敌：己方锁满血
             if (atomic_load(&g_inv) && !enemy) {
                 void *nc = fk_comp_by_class(u, g_clsNumericComp);
                 if (nc) {
-                    long maxHp = fk_box_get_long(fk_invoke(g_mGetAsLong, NULL, (void*[]){nc, fk_boxnt(NT_MaxHp)}));
+                    long maxHp = fk_box_get_long(fk_invoke(g_mGetAsLong, NULL, (void*[]){nc, fk_argnt(NT_MaxHp)}));
                     if (maxHp > 0) {
-                        fk_invoke(g_mSetNoEvent, NULL, (void*[]){nc, fk_boxnt(NT_CurrentHp), fk_boxl(maxHp)});
+                        fk_invoke(g_mSetNoEvent, NULL, (void*[]){nc, fk_argnt(NT_CurrentHp), fk_argl(maxHp)});
                         healed++;
                     }
                 }
