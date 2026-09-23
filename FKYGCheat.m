@@ -332,13 +332,15 @@ static void ui_refresh(void);
 
 // v10: 热更类静态字段安全探测（static_fields 未分配时 il2cpp_field_static_get_value 内部解引用 NULL → 崩）
 // Il2CppField{ name@0x00, type@0x08, parent@0x10, offset@0x18 }（全版本稳定）
-// Il2CppClass.static_fields @0xB8（metadata v29 / Unity 2021.3）
+// Il2CppClass.static_fields @0xA8（metadata v27/v29；0xB8 是 typeHierarchy——v10 写错导致探针失效）
 static BOOL fk_static_safe(void *field) {
     if (!field || !fk_readable(field, 0x20)) return NO;
     void *parent = *(void**)((char*)field + 0x10);
     if (!parent || !fk_readable(parent, 0xC0)) return NO;
-    void *sf = *(void**)((char*)parent + 0xB8);
-    return sf != NULL;
+    void *sf = *(void**)((char*)parent + 0xA8);          // Il2CppClass.static_fields
+    if (!sf || ((uintptr_t)sf & 7)) return NO;           // NULL/未对齐 = 未分配
+    if (!fk_readable(sf, 0x40)) return NO;               // 指针质量
+    return YES;
 }
 
 #pragma mark - 主 tick（主线程 1s）
