@@ -17,8 +17,9 @@
   function wlog(msg) {
     try {
       var t = new Date().toISOString().substr(11, 8);
-      jsb.fileUtils.appendStringToFile("[" + t + "] " + msg + "\n",
-        jsb.fileUtils.getWritablePath() + "gyzw.log");
+      var p = jsb.fileUtils.getWritablePath() + "gyzw.log";
+      var old = jsb.fileUtils.isFileExist(p) ? (jsb.fileUtils.getStringFromFile(p) || "") : "";
+      jsb.fileUtils.writeStringToFile(old + "[" + t + "] " + msg + "\n", p);
     } catch (e) {}
   }
 
