@@ -330,6 +330,17 @@ static int fk_dict_values(void *dict, void **out, int max) {
 
 static void ui_refresh(void);
 
+// v10: 热更类静态字段安全探测（static_fields 未分配时 il2cpp_field_static_get_value 内部解引用 NULL → 崩）
+// Il2CppField{ name@0x00, type@0x08, parent@0x10, offset@0x18 }（全版本稳定）
+// Il2CppClass.static_fields @0xB8（metadata v29 / Unity 2021.3）
+static BOOL fk_static_safe(void *field) {
+    if (!field || !fk_readable(field, 0x20)) return NO;
+    void *parent = *(void**)((char*)field + 0x10);
+    if (!parent || !fk_readable(parent, 0xC0)) return NO;
+    void *sf = *(void**)((char*)parent + 0xB8);
+    return sf != NULL;
+}
+
 #pragma mark - 主 tick（主线程 1s）
 // v6 场景定位：组件树 DFS + class 指针直接比较（彻底绕开 GetComponent(Type) 的 Type 匹配）
 //   Root.Scene --DFS(children+components)--> MainUnitComponent 实例
@@ -388,6 +399,14 @@ static void fk_tick(void) {
 
         static int diag = 0; diag++;
         BOOL ld = (diag <= 6 || diag % 10 == 1);
+
+        // v10: 静态字段就绪探测——ET 初始化完成前 static_fields 为 NULL，直读必崩
+        if (!fk_static_safe(g_fieldCSCInst)) {
+            g_status = 1;
+            if (ld) flog(@"t%d static not ready", diag);
+            ui_refresh();
+            return;
+        }
 
         // Root.Scene = CSC.Instance.domain
         void *mgr = NULL;
