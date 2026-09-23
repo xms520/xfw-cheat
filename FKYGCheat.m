@@ -74,6 +74,8 @@ static void *g_imgCore, *g_imgModel, *g_imgHotfix, *g_imgCorlib;
 
 // v9: 内核级内存探针（mach_vm_read_overwrite）——扫描动态实体树防 SIGSEGV
 #import <mach/mach.h>
+extern kern_return_t mach_vm_read_overwrite(vm_map_t target_task, mach_vm_address_t address,
+    mach_vm_size_t size, mach_vm_address_t data, mach_vm_size_t *outsize);
 static BOOL fk_readable(const void *p, uint64_t len) {
     if (!p || ((uintptr_t)p & 7)) return NO;
     char dummy[8];
