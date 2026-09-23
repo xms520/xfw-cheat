@@ -27,7 +27,7 @@ static void flog(NSString *fmt, ...) {
     va_end(ap);
     NSLog(@"[FKYG] %@", s);
     if (!g_log) {
-        NSString *p = [NSTemporaryDirectory() stringByAppendingPathComponent:@"../../Documents/fkyg.log"];
+        NSString *p = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/fkyg.log"];
         g_log = fopen(p.UTF8String, "a");
     }
     if (g_log) { fprintf(g_log, "[FKYG] %s\n", s.UTF8String); fflush(g_log); }
@@ -92,10 +92,15 @@ static void *fk_class_img(void *img, const char *ns, const char *name) {
     if (!img) return NULL;
     return ((void*(*)(void*,const char*,const char*))p_class_from_name)(img, ns, name);
 }
-static void *fk_class(const char *ns, const char *name) {
-    void *c = fk_class_img(g_imgModel, ns, name);
-    if (!c) c = fk_class_img(g_imgHotfix, ns, name);
-    if (!c) c = fk_class_img(g_imgCore, ns, name);
+// ET9 命名空间分 ET / ET.Client（MainUnitComponent、BattleSceneHelper 在 ET.Client）
+static void *fk_class(const char *ns0, const char *name) {
+    const char *nss[2] = { ns0, "ET.Client" };
+    void *c = NULL;
+    for (int i = 0; i < 2 && !c; i++) {
+        c = fk_class_img(g_imgModel, nss[i], name);
+        if (!c) c = fk_class_img(g_imgHotfix, nss[i], name);
+        if (!c) c = fk_class_img(g_imgCore, nss[i], name);
+    }
     return c;
 }
 static long fk_foff(void *cls, const char *fname) {
@@ -135,12 +140,23 @@ static BOOL fk_find_images(void) {
         if (!img) continue;
         const char *nm = ((const char*(*)(void*))p_image_get_name)(img);
         if (!nm) continue;
-        if (!strcmp(nm, "Unity.Core.dll")) g_imgCore = img;
-        else if (!strcmp(nm, "Model.dll")) g_imgModel = img;
-        else if (!strcmp(nm, "Hotfix.dll")) g_imgHotfix = img;
-        else if (!strcmp(nm, "mscorlib.dll")) g_imgCorlib = img;
+        // HybridCLR/AOT image 名可能带或不带 .dll —— 用前缀匹配
+        if (!strncmp(nm, "Unity.Core", 10)) g_imgCore = img;
+        else if (!strncmp(nm, "Model", 5) && !strstr(nm, "Config")) g_imgModel = img;
+        else if (!strncmp(nm, "Hotfix", 6)) g_imgHotfix = img;
+        else if (!strncmp(nm, "mscorlib", 8)) g_imgCorlib = img;
     }
-    flog(@"images: core=%p model=%p hotfix=%p corlib=%p", g_imgCore, g_imgModel, g_imgHotfix, g_imgCorlib);
+    // 诊断：列出自定义程序集
+    NSMutableString *cust = [NSMutableString string];
+    for (size_t i = 0; i < n; i++) {
+        if (!list[i]) continue;
+        void *img = ((void*(*)(void*))p_assembly_get_image)(list[i]);
+        const char *nm2 = img ? ((const char*(*)(void*))p_image_get_name)(img) : NULL;
+        if (nm2 && !strncmp(nm2, "Unity.", 6) == 0 && !strncmp(nm2, "System", 6) && strncmp(nm2, "UnityEngine", 11) && strncmp(nm2, "mscorlib", 8) && strncmp(nm2, "Mono", 4) && strncmp(nm2, "netstandard", 11))
+            [cust appendFormat:@"%s ", nm2];
+    }
+    flog(@"images: core=%p model=%p hotfix=%p corlib=%p | custom: %@",
+         g_imgCore, g_imgModel, g_imgHotfix, g_imgCorlib, cust);
     return (g_imgCore && g_imgModel && g_imgHotfix);
 }
 
@@ -150,8 +166,8 @@ static BOOL fk_resolve(void) {
     if (!g_imgModel && !fk_find_images()) return NO;
 
     if (!g_clsEntity) {
-        g_clsEntity = fk_class_img(g_imgCore, "", "Entity");
-        if (!g_clsEntity) { flog(@"Entity class miss"); return NO; }
+        g_clsEntity = fk_class_img(g_imgCore, "ET", "Entity");
+        if (!g_clsEntity) { flog(@"Entity class miss (ns ET @ Unity.Core)"); return NO; }
         g_mGetComponent = fk_meth(g_clsEntity, "GetComponent", 1);
         g_offDomain = fk_foff(g_clsEntity, "domain");
         if (!g_mGetComponent || g_offDomain < 0) { flog(@"GetComponent=%p dom=%ld", g_mGetComponent, g_offDomain); return NO; }
@@ -335,6 +351,7 @@ static void fk_tick(void) {
 #define TAG_BALL  977001
 #define TAG_PANEL 977002
 #define TAG_ST    977003
+#define TAG_MASK  977004
 static UILabel *g_statusLabel = nil;
 static UIButton *g_bKill = nil, *g_bInv = nil, *g_bSpd = nil;
 static void ui_toggle_panel(void);
@@ -343,6 +360,7 @@ static void fk_make_ui(void);
 @interface FKTickBox : NSObject
 + (instancetype)shared;
 - (void)noop;
+- (void)tapMask;
 - (void)tapKill;
 - (void)tapInv;
 - (void)tapSpd;
@@ -361,7 +379,7 @@ static UIButton *fk_btn(NSString *title) {
     b.layer.borderWidth = 1;
     b.layer.borderColor = fk_color(90, 160, 255, 0.6).CGColor;
     b.backgroundColor = fk_color(28, 30, 40, 0.95);
-    b.titleLabel.font = [UIFont boldSystemFontOfSize:14];
+    b.titleLabel.font = [UIFont boldSystemFontOfSize:13];
     [b setTitleColor:fk_color(220, 225, 235, 1) forState:UIControlStateNormal];
     [b setTitle:title forState:UIControlStateNormal];
     return b;
@@ -395,52 +413,64 @@ static void ui_refresh(void) {
 static void ui_toggle_panel(void) {
     UIWindow *w = [UIApplication sharedApplication].keyWindow ?: [UIApplication sharedApplication].windows.firstObject;
     UIView *p = [w viewWithTag:TAG_PANEL];
-    if (p) { [p removeFromSuperview]; return; }
-    CGFloat ph = 260;
-    UIView *panel = [[UIView alloc] initWithFrame:CGRectMake(20, 120, [UIScreen mainScreen].bounds.size.width - 40, ph)];
+    if (p) {
+        [[w viewWithTag:TAG_MASK] removeFromSuperview];
+        [p removeFromSuperview];
+        return;
+    }
+    // 紧凑面板：宽 212 / 高 196
+    CGFloat pw = 212, ph = 196;
+    // 全屏透明遮罩：点任意面板外区域收起（遮罩在悬浮球之下，球仍可点）
+    UIView *mask = [[UIView alloc] initWithFrame:w.bounds];
+    mask.tag = TAG_MASK;
+    mask.backgroundColor = [UIColor clearColor];
+    mask.userInteractionEnabled = YES;
+    UITapGestureRecognizer *tgm = [[UITapGestureRecognizer alloc] initWithTarget:[FKTickBox shared] action:@selector(tapMask)];
+    [mask addGestureRecognizer:tgm];
+
+    UIView *panel = [[UIView alloc] initWithFrame:CGRectMake(16, 90, pw, ph)];
     panel.tag = TAG_PANEL;
-    panel.layer.cornerRadius = 16;
+    panel.layer.cornerRadius = 14;
     panel.backgroundColor = fk_color(14, 16, 24, 0.92);
     panel.layer.borderColor = fk_color(70, 140, 255, 0.5).CGColor;
     panel.layer.borderWidth = 1;
     panel.userInteractionEnabled = YES;
+    // 点面板本身不收起（吞掉点击）
+    UITapGestureRecognizer *tg = [[UITapGestureRecognizer alloc] initWithTarget:[FKTickBox shared] action:@selector(noop)];
+    [panel addGestureRecognizer:tg];
 
-    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0, 10, panel.bounds.size.width, 24)];
+    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0, 8, pw, 20)];
     title.text = @"✦ 妖怪助手 ✦";
     title.textColor = fk_color(120, 200, 255, 1);
-    title.font = [UIFont boldSystemFontOfSize:17];
+    title.font = [UIFont boldSystemFontOfSize:15];
     title.textAlignment = NSTextAlignmentCenter;
     [panel addSubview:title];
 
     void (^mk)(int, NSString *, void (^)()) = ^(int row, NSString *t, void (^act)()) {
         UIButton *b = fk_btn(t);
-        b.frame = CGRectMake(16, 44 + row * 46, panel.bounds.size.width - 32, 38);
-        [b addTarget:[FKTickBox shared] action:@selector(noop) forControlEvents:UIControlEventTouchUpInside];
+        b.frame = CGRectMake(12, 34 + row * 40, pw - 24, 34);
         [panel addSubview:b];
         act(b);
     };
-    __block UIView *panelRef = panel;
     mk(0, @"秒杀  关", ^(UIButton *b){ g_bKill = b;
         [b addTarget:[FKTickBox shared] action:@selector(tapKill) forControlEvents:UIControlEventTouchUpInside]; });
     mk(1, @"无敌  关", ^(UIButton *b){ g_bInv = b;
         [b addTarget:[FKTickBox shared] action:@selector(tapInv) forControlEvents:UIControlEventTouchUpInside]; });
     mk(2, @"加速  1x", ^(UIButton *b){ g_bSpd = b;
         [b addTarget:[FKTickBox shared] action:@selector(tapSpd) forControlEvents:UIControlEventTouchUpInside]; });
-    g_statusLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, ph - 34, panel.bounds.size.width - 32, 18)];
+    g_statusLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, ph - 24, pw - 20, 16)];
     g_statusLabel.tag = TAG_ST;
     g_statusLabel.textColor = fk_color(150, 160, 175, 1);
-    g_statusLabel.font = [UIFont systemFontOfSize:11];
+    g_statusLabel.font = [UIFont systemFontOfSize:10];
     g_statusLabel.textAlignment = NSTextAlignmentCenter;
     [panel addSubview:g_statusLabel];
 
-    // 点面板空白处收起
-    UITapGestureRecognizer *tg = [[UITapGestureRecognizer alloc] initWithTarget:[FKTickBox shared] action:@selector(noop)];
-    tg.numberOfTapsRequired = 1;
-    [panel addGestureRecognizer:tg];
-
+    [w addSubview:mask];
     [w addSubview:panel];
+    // 悬浮球保持在遮罩之上
+    UIView *ball = [w viewWithTag:TAG_BALL];
+    if (ball) [w bringSubviewToFront:ball];
     ui_refresh();
-    panelRef = nil;
 }
 static void fk_make_ui(void) {
     UIWindow *w = [UIApplication sharedApplication].keyWindow ?: [UIApplication sharedApplication].windows.firstObject;
@@ -467,6 +497,7 @@ static void fk_make_ui(void) {
 @implementation FKTickBox
 + (instancetype)shared { static FKTickBox *b; static dispatch_once_t o; dispatch_once(&o, ^{ b = [self new]; }); return b; }
 - (void)noop {}
+- (void)tapMask { ui_toggle_panel(); }
 - (void)tapKill { atomic_fetch_xor(&g_kill, 1); flog(@"kill -> %d", atomic_load(&g_kill)); ui_refresh(); }
 - (void)tapInv  { atomic_fetch_xor(&g_inv, 1);  flog(@"inv -> %d",  atomic_load(&g_inv));  ui_refresh(); }
 - (void)tapSpd  { g_spd = (g_spd + 1) % 4; g_lastTSscene = NULL; flog(@"spd -> %dx", SPD_N[g_spd]); ui_refresh(); }
