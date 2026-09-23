@@ -72,17 +72,39 @@ static BOOL load_il2cpp_api(void) {
 #pragma mark - helper
 static void *g_imgCore, *g_imgModel, *g_imgHotfix, *g_imgCorlib;
 
+static void *fk_meth(void *cls, const char *m, int argc);
+static void *fk_invoke2(void *method, void *inst);
 static void *fk_invoke(void *method, void *inst, void **params) {
     void *exc = NULL;
     void *r = ((void*(*)(void*,void*,void**,void*))p_runtime_invoke)(method, inst, params, &exc);
     if (exc) {
+        static int excLogN = 0;
         const char *cn = "?";
         void *cls = ((void*(*)(void*))p_object_get_class)(exc);
         if (cls) cn = ((const char*(*)(void*))p_class_get_name)(cls);
-        flog(@"invoke exc: %s", cn);
+        NSString *detail = @"";
+        if (excLogN < 8) {
+            // Exception.ToString() 详情（UTF16）
+            void *mTs = fk_meth(cls, "ToString", 0);
+            void *so = mTs ? fk_invoke2(mTs, exc) : NULL;
+            if (so) {
+                int len = *(int32_t*)((char*)so + 0x10);
+                if (len > 0 && len < 512) {
+                    unichar buf[512];
+                    for (int i = 0; i < len; i++) buf[i] = *(unichar*)((char*)so + 0x14 + 2*i);
+                    detail = [NSString stringWithCharacters:buf length:len];
+                }
+            }
+        }
+        if (excLogN++ < 8) flog(@"invoke exc[%s]: %@", cn, detail);
         return NULL;
     }
     return r;
+}
+// 无日志版 invoke（fk_dict_values 高频路径防刷屏）
+static void *fk_invoke2(void *method, void *inst) {
+    void *exc = NULL;
+    return ((void*(*)(void*,void*,void**,void*))p_runtime_invoke)(method, inst, NULL, &exc);
 }
 // box 值读取：Il2CppObject 头 0x10，值数据 @0x10
 static long   fk_box_get_long (void *b) { return b ? *(long*)((char*)b + 0x10) : 0; }
@@ -126,6 +148,7 @@ static void *g_fieldCSCInst;
 static void *g_clsInt32, *g_clsInt64;
 static long g_offDomain = -1, g_offMainUnitRef = -1, g_offFightUnits = -1;
 static long g_offDmgValue = -1, g_offDmgSource = -1, g_offIsFighting = -1;
+static long g_offChildren = -1, g_offComps = -1;
 static int g_resolveTry = 0;
 static BOOL g_resolved = NO;
 
@@ -171,7 +194,10 @@ static BOOL fk_resolve(void) {
         if (!g_clsEntity) { flog(@"Entity class miss (ns ET @ Unity.Core)"); return NO; }
         g_mGetComponent = fk_meth(g_clsEntity, "GetComponent", 1);
         g_offDomain = fk_foff(g_clsEntity, "domain");
+        g_offChildren = fk_foff(g_clsEntity, "children");
+        g_offComps = fk_foff(g_clsEntity, "components");
         if (!g_mGetComponent || g_offDomain < 0) { flog(@"GetComponent=%p dom=%ld", g_mGetComponent, g_offDomain); return NO; }
+        flog(@"Entity offs: domain=%ld children=%ld components=%ld", g_offDomain, g_offChildren, g_offComps);
     }
     g_clsMainUnitComp = fk_class("ET", "MainUnitComponent");
     g_clsUnitComp     = fk_class("ET", "UnitComponent");
@@ -245,17 +271,29 @@ static void *fk_boxl(long v)     { return g_clsInt64 ? ((void*(*)(void*,void*))p
 static void *fk_boxnt(uint16_t v){ return g_clsNumericType ? ((void*(*)(void*,void*))p_value_box)(g_clsNumericType, &v) : NULL; }
 
 // 反射枚举 Dictionary<long,Entity> values（get_Values + CopyTo，零字典布局硬编码）
+static int fk_dict_fail_log = 0;
 static int fk_dict_values(void *dict, void **out, int max) {
     if (!dict) return 0;
     void *cls = ((void*(*)(void*))p_object_get_class)(dict);
+    const char *cn = cls ? ((const char*(*)(void*))p_class_get_name)(cls) : NULL;
+    if (!cn || !strstr(cn, "Dictionary")) {
+        if (fk_dict_fail_log++ < 5) flog(@"dict not Dictionary: ptr=%p cls=%s", dict, cn ? cn : "null");
+        return 0;
+    }
     void *mGV = fk_meth(cls, "get_Values", 0);
-    if (!mGV) return 0;
+    void *mCnt  = fk_meth(cls, "get_Count", 0);
+    if (!mGV || !mCnt) {
+        if (fk_dict_fail_log++ < 5) flog(@"dict meth miss GV=%p Cnt=%p (%s)", mGV, mCnt, cn);
+        return 0;
+    }
     void *vc = fk_invoke(mGV, dict, NULL);
     if (!vc) return 0;
     void *vcCls = ((void*(*)(void*))p_object_get_class)(vc);
     void *mCopy = fk_meth(vcCls, "CopyTo", 2);
-    void *mCnt  = fk_meth(cls, "get_Count", 0);
-    if (!mCopy || !mCnt) return 0;
+    if (!mCopy) {
+        if (fk_dict_fail_log++ < 5) flog(@"CopyTo miss on %s", ((const char*(*)(void*))p_class_get_name)(vcCls));
+        return 0;
+    }
     int n = fk_box_get_int(fk_invoke(mCnt, dict, NULL));
     if (n <= 0 || n > 4096) return 0;
     void *arr = ((void*(*)(void*,long))p_array_new)(g_clsEntity, n);
@@ -293,18 +331,16 @@ static void *fk_dfs_find(void *e, void *targetCls, int depth) {
     if (cls == targetCls) return e;
     if (depth <= 1 || fk_dfs_visited > 4096) return NULL;
     void *kids[256];
-    long offChildren = fk_foff(g_clsEntity, "children");
-    long offComps = fk_foff(g_clsEntity, "components");
-    if (offChildren >= 0) {
-        void *dict = *(void**)((char*)e + offChildren);
+    if (g_offChildren >= 0) {
+        void *dict = *(void**)((char*)e + g_offChildren);
         int n = fk_dict_values(dict, kids, 256);
         for (int i = 0; i < n; i++) {
             void *r = fk_dfs_find(kids[i], targetCls, depth - 1);
             if (r) return r;
         }
     }
-    if (offComps >= 0) {
-        void *dict = *(void**)((char*)e + offComps);
+    if (g_offComps >= 0) {
+        void *dict = *(void**)((char*)e + g_offComps);
         int n = fk_dict_values(dict, kids, 256);
         for (int i = 0; i < n; i++) {
             void *r = fk_dfs_find(kids[i], targetCls, depth - 1);
