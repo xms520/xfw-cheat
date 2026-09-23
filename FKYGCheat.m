@@ -72,6 +72,18 @@ static BOOL load_il2cpp_api(void) {
 #pragma mark - helper
 static void *g_imgCore, *g_imgModel, *g_imgHotfix, *g_imgCorlib;
 
+// v9: 内核级内存探针（mach_vm_read_overwrite）——扫描动态实体树防 SIGSEGV
+#import <mach/mach.h>
+static BOOL fk_readable(const void *p, uint64_t len) {
+    if (!p || ((uintptr_t)p & 7)) return NO;
+    char dummy[8];
+    mach_vm_address_t outAddr = (mach_vm_address_t)(uintptr_t)dummy;
+    mach_vm_size_t outSz = 0;
+    kern_return_t kr = mach_vm_read_overwrite(mach_task_self(),
+        (mach_vm_address_t)(uintptr_t)p, (mach_vm_size_t)len, outAddr, &outSz);
+    return kr == KERN_SUCCESS;
+}
+
 static void *fk_meth(void *cls, const char *m, int argc);
 static void *fk_invoke2(void *method, void *inst);
 static void *fk_invoke(void *method, void *inst, void **params) {
@@ -278,7 +290,7 @@ static void *fk_argnt(uint16_t v){ uint16_t *p = &g_au[g_aun++ & 7]; *p = v; ret
 // 反射枚举 Dictionary<long,Entity> values（get_Values + CopyTo，零字典布局硬编码）
 static int fk_dict_fail_log = 0;
 static int fk_dict_values(void *dict, void **out, int max) {
-    if (!dict) return 0;
+    if (!dict || !fk_readable(dict, 0x58)) return 0; // 字典对象可读性探针
     void *cls = ((void*(*)(void*))p_object_get_class)(dict);
     const char *cn = cls ? ((const char*(*)(void*))p_class_get_name)(cls) : NULL;
     if (!cn || !strstr(cn, "Dictionary")) {
@@ -292,7 +304,7 @@ static int fk_dict_values(void *dict, void **out, int max) {
         return 0;
     }
     void *vc = fk_invoke(mGV, dict, NULL);
-    if (!vc) return 0;
+    if (!vc || !fk_readable(vc, 0x20)) return 0;
     void *vcCls = ((void*(*)(void*))p_object_get_class)(vc);
     void *mCopy = fk_meth(vcCls, "CopyTo", 2);
     if (!mCopy) {
@@ -304,9 +316,13 @@ static int fk_dict_values(void *dict, void **out, int max) {
     void *arr = ((void*(*)(void*,long))p_array_new)(g_clsEntity, n);
     if (!arr) return 0;
     fk_invoke(mCopy, vc, (void*[]){arr, fk_argi(0)});
+    if (!fk_readable(arr, 0x20)) return 0;
+    int32_t nArr = *(int32_t*)((char*)arr + 0x18);
+    if (nArr > n) nArr = n;
     void **elems = (void**)((char*)arr + 0x20);
+    if (!fk_readable(elems, (uint64_t)nArr * 8)) return 0;
     int c = 0;
-    for (int i = 0; i < n && c < max; i++) if (elems[i]) out[c++] = elems[i];
+    for (int i = 0; i < nArr && c < max; i++) if (elems[i]) out[c++] = elems[i];
     return c;
 }
 
@@ -331,6 +347,9 @@ static void *fk_comp_by_class(void *e, void *cls) {
 static int fk_dfs_visited = 0;
 static void *fk_dfs_find(void *e, void *targetCls, int depth) {
     if (!e || depth <= 0) return NULL;
+    if (!fk_readable(e, 0x58)) return NULL;          // 实体可读性探针
+    long iid = *(long*)((char*)e + 0x10);
+    if (iid == 0) return NULL;                        // 已 Dispose 实体不递归
     fk_dfs_visited++;
     void *cls = ((void*(*)(void*))p_object_get_class)(e);
     if (cls == targetCls) return e;
@@ -375,11 +394,11 @@ static void fk_tick(void) {
         void *root = *(void**)((char*)mgr + g_offDomain);
         if (!root) { if (ld) flog(@"t%d root=NULL", diag); return; }
 
-        // 缓存验证：InstanceId != 0 视为存活
-        if (g_cMainComp && g_instId(g_cMainComp) == 0) g_cMainComp = NULL;
+        // 缓存验证：可读 + InstanceId != 0 视为存活
+        if (g_cMainComp && (!fk_readable(g_cMainComp, 0x18) || g_instId(g_cMainComp) == 0)) g_cMainComp = NULL;
 
-        // DFS 找 MainUnitComponent（无缓存时，节流 3s）
-        if (!g_cMainComp && ++g_dfsThrottle % 3 == 1) {
+        // DFS 找 MainUnitComponent（无缓存时，节流 10s）
+        if (!g_cMainComp && ++g_dfsThrottle % 10 == 1) {
             fk_dfs_visited = 0;
             void *comp = fk_dfs_find(root, g_clsMainUnitComp, 10);
             if (ld) flog(@"t%d DFS visited=%d hit=%p", diag, fk_dfs_visited, comp);
