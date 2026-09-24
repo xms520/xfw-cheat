@@ -11,6 +11,17 @@
 #import "GYZWCheat_embedded.h"
 #import "GYZWCheat_ball.h"
 
+typedef bool (*evalString_t)(void *se, const char *script, size_t len, void *ret, const char *name);
+
+static evalString_t g_eval;
+static int  g_probeFail = 0;
+static BOOL g_seOk = NO;      // se 指针拿到 + probe 通过
+static BOOL g_injected = NO;  // cheat.js 已注入且 flag 文件验证通过
+static BOOL g_kill = NO, g_inv = NO, g_ad = NO, g_pick = NO, g_lvl = NO, g_gm = NO;
+static int  g_spdIdx = 0; // 0=OFF 1=x2 2=x4 3=x8 4=x16
+static NSString *SPD_NAMES[5] = {@"OFF", @"x2", @"x4", @"x8", @"x16"};
+static UIView *g_panel = nil;
+
 @interface GYZWCheat : NSObject
 + (instancetype)shared;
 - (void)boot;
