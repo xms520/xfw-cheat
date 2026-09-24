@@ -1,88 +1,15 @@
-// GYZWCheat v3 (互联锁版) - 光阴之外 (com.gyzw.gameios)
-// 与 QP1CardVerification.dylib 互联依赖: 两个 dylib 相互校验, 缺任一个 = abort()
-// 机制:
-//  A. [native] constructor 最先跑: 写 mach 时间戳到环境哨兵 + 文件哨兵
-//     QP1 的 setDelegate hook 首次被调时校验哨兵 (QP1 侧已注入相同协议)
-//  B. [native] QP1 +load 会在 UIApplication.setDelegate 交换后留下协议标记:
-//     通过 dlsym 探测 QP1 的类 CardVerification 存在 + 其方法 checkCacheAndVerify 可调用
-//  C. [JS] cheat.js 里校验 window.__QP1Token (QP1 注入 JS 时写入), 缺失则抛异常自毁
-//  D. [native] 每 60s 复查 1 次, 任何一步缺失 = kill(getpid(), SIGKILL)
-//  E. 校验密钥用运行时异或解码, 二进制里不出现明文
+// GYZWCheat v4-test (无互联锁测试版) - 光阴之外 (com.gyzw.gameios)
+// 新增: 自动拾取(绕AutoPickup权限) / 解锁主线(sectTire.levelMainLimit) / GM面板(IS_OPEN_GM)
+// ⚠️ 解锁主线与 GM 命令需服务器放行, 大概率被拒; 自动拾取风险低(掉落物本属玩家)
+// 架构: se::ScriptEngine::evalString 直调注入 (evalString @ RVA 0x15FD7C, 单例 *(base+0xDB88B8))
 #import <UIKit/UIKit.h>
 #import <CoreGraphics/CoreGraphics.h>
 #import <QuartzCore/QuartzCore.h>
 #import <mach-o/dyld.h>
-#import <mach-o/loader.h>
 #import <dlfcn.h>
 #import <string.h>
-#import <signal.h>
-#import <sys/sysctl.h>
 #import "GYZWCheat_embedded.h"
 #import "GYZWCheat_ball.h"
-
-#define TAG_BALL   9001
-#define TAG_PANEL  9002
-#define TAG_MASK   9003
-
-typedef bool (*evalString_t)(void *se, const char *script, size_t len, void *ret, const char *name);
-
-static evalString_t g_eval;
-static void *g_base;
-static int  g_probeFail = 0;
-static BOOL g_seOk = NO;
-static BOOL g_injected = NO;
-static BOOL g_kill = NO, g_inv = NO, g_ad = NO;
-static int  g_spdIdx = 0;
-static NSString *SPD_NAMES[5] = {@"OFF", @"x2", @"x4", @"x8", @"x16"};
-static UIView *g_panel = nil;
-
-// ================= 互联锁协议 =================
-// 共享哨兵: /var/mobile/Containers/Data/Application/<UUID>/Documents/.qx.lock
-// 内容 = "QX" + hex(时间戳 ^ MAGIC1) + hex(uuid_hash ^ MAGIC2)
-// 双方读写校验; 另有 ObjC 类存在性 + JS token 双通道
-#define QX_MAGIC1 0x5A3C7E91ULL
-#define QX_MAGIC2 0x2D4B6F18ULL
-static uint64_t g_qxSeed = 0;
-
-static NSString *g_qxMake(uint64_t v1, uint64_t v2) {
-    return [NSString stringWithFormat:@"QX%016llx%016llx",
-            (unsigned long long)(v1 ^ QX_MAGIC1), (unsigned long long)(v2 ^ QX_MAGIC2)];
-}
-
-// 写己方哨兵 (constructor 最早)
-static void g_qxWriteOwn(void) {
-    g_qxSeed = (uint64_t)[[NSDate date] timeIntervalSince1970] ^ ((uint64_t)getpid() << 32);
-    // 己方标记文件: 两个 (互为备份)
-    NSString *own = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/.qx.a"];
-    [[NSFileManager defaultManager] createFileAtPath:own contents:[g_qxMake(g_qxSeed, QX_MAGIC1) dataUsingEncoding:NSUTF8StringEncoding] attributes:nil];
-    // ObjC 类标记: 注册一个双方约定名的小类, QP1 侧 dlsym/nsclassfromstring 探测
-}
-
-// 对方哨兵校验: QP1 必须已写 .qx.b
-static BOOL g_qxCheckPeer(BOOL killOnFail) {
-    NSFileManager *fm = [NSFileManager defaultManager];
-    // 通道1: 对方标记文件
-    NSString *peer = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/.qx.b"];
-    BOOL fileOk = NO;
-    if ([fm fileExistsAtPath:peer]) {
-        NSString *s = [NSString stringWithContentsOfFile:peer encoding:NSUTF8StringEncoding error:nil];
-        fileOk = (s.length >= 2 && [s hasPrefix:@"QX"]);
-    }
-    // 通道2: QP1 的 ObjC 类必须存在
-    BOOL clsOk = (NSClassFromString(@"CardVerification") != nil) ||
-                 (NSClassFromString(@"CardFullScreenInputVC") != nil);
-    BOOL ok = fileOk || clsOk;
-    if (!ok && killOnFail) {
-        // 延迟随机 0.5~3s 闪退, 混淆触发点
-        double delay = 0.5 + (arc4random() % 2500) / 1000.0;
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            kill(getpid(), SIGKILL);
-        });
-    }
-    return ok;
-}
-
-// ================= 原有功能 =================
 
 @interface GYZWCheat : NSObject
 + (instancetype)shared;
@@ -95,9 +22,8 @@ static BOOL g_qxCheckPeer(BOOL killOnFail) {
 - (void)onBallPan:(UIPanGestureRecognizer *)p;
 - (void)onPanelPan:(UIPanGestureRecognizer *)p;
 - (void)onBallTap;
-- (void)onKill; - (void)onInv; - (void)onSpd; - (void)onAd; - (void)onClose;
+- (void)onKill; - (void)onInv; - (void)onSpd; - (void)onAd; - (void)onPick; - (void)onLvl; - (void)onGm; - (void)onClose;
 - (void)statusLoop;
-- (void)qxLoop;
 @end
 
 static void glog(NSString *fmt, ...) NS_FORMAT_FUNCTION(1,2);
@@ -145,17 +71,6 @@ static void *g_main_base(void) {
     return NULL;
 }
 
-// ---------- 互联锁哨兵类 (QP1 侧探测用) ----------
-// 类名约定: GYZWQxSentinel — QP1 互联版会检查此类存在
-@interface GYZWQxSentinel : NSObject
-+ (NSString *)qxStamp;
-@end
-@implementation GYZWQxSentinel
-+ (NSString *)qxStamp {
-    return [NSString stringWithFormat:@"qx-%llu", (unsigned long long)(g_qxSeed ^ QX_MAGIC2)];
-}
-@end
-
 @implementation GYZWCheat
 + (instancetype)shared {
     static GYZWCheat *s; static dispatch_once_t once;
@@ -164,25 +79,9 @@ static void *g_main_base(void) {
 }
 
 - (void)boot {
-    glog(@"GYZWCheat v3 boot, pid=%d", getpid());
+    glog(@"GYZWCheat v4 boot, pid=%d", getpid());
     g_addBall();
     [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(injectTick) userInfo:nil repeats:YES];
-    // 互联锁周期校验 + JS 心跳 (5s)
-    [NSTimer scheduledTimerWithTimeInterval:5.0 target:self selector:@selector(qxLoop) userInfo:nil repeats:YES];
-}
-
-// 互联锁周期校验 + JS 心跳注入 (每 5s: QP1 在 -> eval __qp1Alive=true)
-- (void)qxLoop {
-    BOOL ok = g_qxCheckPeer(NO);
-    if (!ok) {
-        glog(@"qx: peer missing -> kill");
-        kill(getpid(), SIGKILL);
-        return;
-    }
-    // QP1 在 -> JS 心跳 (cheat.js qxCheck 每秒消费, 45s 未见则摘 patch)
-    if (g_injected) {
-        [self evalf:@"window.__qp1Alive=true;"];
-    }
 }
 
 static BOOL g_injecting = NO;
@@ -262,9 +161,9 @@ static int g_evalFail = 0;
     [self evalf:@"__GYZW.setFlag('inv',%@)", g_inv ? @"true" : @"false"];
     [self evalf:@"__GYZW.setFlag('spd',%d)", g_spdIdx];
     [self evalf:@"__GYZW.setFlag('ad',%@)", g_ad ? @"true" : @"false"];
-    // 互联锁 JS 通道: 注入成功首帧即给心跳 (之后 qxLoop 每 5s 刷)
-    BOOL qp1 = (NSClassFromString(@"CardVerification") != nil);
-    [self evalf:@"window.__qp1Alive=%@;", qp1 ? @"true" : @"false"];
+    [self evalf:@"__GYZW.setFlag('pick',%@)", g_pick ? @"true" : @"false"];
+    [self evalf:@"__GYZW.setFlag('lvl',%@)", g_lvl ? @"true" : @"false"];
+    [self evalf:@"__GYZW.setFlag('gm',%@)", g_gm ? @"true" : @"false"];
 }
 
 - (void)setStatus:(NSString *)s {
@@ -344,7 +243,7 @@ static void g_addBall(void) {
     }
 }
 
-static UIButton *(g_btns[4]);
+static UIButton *(g_btns[7]);
 
 static UIButton *g_rowButton(NSString *title, int tag, SEL action, CGFloat y, CGFloat w) {
     UIButton *b = [UIButton buttonWithType:UIButtonTypeSystem];
@@ -381,7 +280,7 @@ static void g_togglePanel(void) {
         g_panel = nil;
         return;
     }
-    CGFloat pw = 230, ph = 318;
+    CGFloat pw = 230, ph = 434;
     CGFloat px = w.bounds.size.width - pw - 14;
     CGFloat py = 120;
     UIView *panel = [[UIView alloc] initWithFrame:CGRectMake(px, py, pw, ph)];
@@ -421,11 +320,17 @@ static void g_togglePanel(void) {
     g_btns[1] = g_rowButton(g_inv ? @"无敌 ON" : @"无敌 OFF", 2, @selector(onInv), 120, pw);
     g_btns[2] = g_rowButton([NSString stringWithFormat:@"加速 %@", SPD_NAMES[g_spdIdx]], 3, @selector(onSpd), 166, pw);
     g_btns[3] = g_rowButton(g_ad ? @"免广告 ON" : @"免广告 OFF", 4, @selector(onAd), 212, pw);
+    g_btns[4] = g_rowButton(g_pick ? @"自动拾取 ON" : @"自动拾取 OFF", 5, @selector(onPick), 258, pw);
+    g_btns[5] = g_rowButton(g_lvl ? @"解锁主线 ON" : @"解锁主线 OFF", 6, @selector(onLvl), 304, pw);
+    g_btns[6] = g_rowButton(g_gm ? @"GM面板 ON" : @"GM面板 OFF", 7, @selector(onGm), 350, pw);
     g_styleBtn(g_btns[0], g_kill);
     g_styleBtn(g_btns[1], g_inv);
     g_styleBtn(g_btns[2], g_spdIdx > 0);
     g_styleBtn(g_btns[3], g_ad);
-    for (int i = 0; i < 4; i++) [panel addSubview:g_btns[i]];
+    g_styleBtn(g_btns[4], g_pick);
+    g_styleBtn(g_btns[5], g_lvl);
+    g_styleBtn(g_btns[6], g_gm);
+    for (int i = 0; i < 7; i++) [panel addSubview:g_btns[i]];
 
     UIButton *close = [UIButton buttonWithType:UIButtonTypeSystem];
     close.frame = CGRectMake(pw - 34, 6, 28, 28);
@@ -467,6 +372,22 @@ static void g_togglePanel(void) {
     [g_btns[3] setTitle:g_ad ? @"免广告 ON" : @"免广告 OFF" forState:UIControlStateNormal];
     [self evalf:@"__GYZW.setFlag('ad',%@)", g_ad ? @"true" : @"false"];
 }
+- (void)onPick {
+    g_pick = !g_pick; g_styleBtn(g_btns[4], g_pick);
+    [g_btns[4] setTitle:g_pick ? @"自动拾取 ON" : @"自动拾取 OFF" forState:UIControlStateNormal];
+    [self evalf:@"__GYZW.setFlag('pick',%@)", g_pick ? @"true" : @"false"];
+}
+- (void)onLvl { // ⚠️ 服务器可能拒绝越界关卡
+    g_lvl = !g_lvl; g_styleBtn(g_btns[5], g_lvl);
+    [g_btns[5] setTitle:g_lvl ? @"解锁主线 ON" : @"解锁主线 OFF" forState:UIControlStateNormal];
+    [self evalf:@"__GYZW.setFlag('lvl',%@)", g_lvl ? @"true" : @"false"];
+}
+- (void)onGm { // ⚠️ GM 命令需服务器权限, 普通号可能被封
+    g_gm = !g_gm; g_styleBtn(g_btns[6], g_gm);
+    [g_btns[6] setTitle:g_gm ? @"GM面板 ON" : @"GM面板 OFF" forState:UIControlStateNormal];
+    [self evalf:@"__GYZW.setFlag('gm',%@)", g_gm ? @"true" : @"false"];
+    if (g_gm) [self evalf:@"__GYZW.gm('addcoins(100000)')"];
+}
 - (void)onClose {
     UIWindow *w = g_keyWindow();
     UIView *mask = [w viewWithTag:TAG_MASK];
@@ -483,7 +404,7 @@ static void g_togglePanel(void) {
 
 @end
 
-// ================= 入口: 互联锁 constructor =================
+// ================= 入口 =================
 __attribute__((constructor))
 static void GYZWCheat_ctor(void) {
     // 白名单
@@ -491,31 +412,10 @@ static void GYZWCheat_ctor(void) {
     NSString *exe = [[NSProcessInfo processInfo] processName] ?: @"";
     if (![bid isEqualToString:@"com.gyzw.gameios"] && ![exe containsString:@"game-mobile"]) return;
 
-    // 1. 立刻写己方哨兵 (QP1 互联版在 +load/首次 setDelegate 时校验)
-    g_qxWriteOwn();
-
-    // 1b. 首启给 QP1 喂哨兵: QP1 原版不写 .qx.b, 由本 dylib 在确认 QP1 类存在后代写
-    //     (QP1 在则链路通; QP1 不在则无人写 -> 3s 校验失败)
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        if (NSClassFromString(@"CardVerification") || NSClassFromString(@"CardFullScreenInputVC")) {
-            NSString *peer = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/.qx.b"];
-            uint64_t now = (uint64_t)[[NSDate date] timeIntervalSince1970];
-            [[NSFileManager defaultManager] createFileAtPath:peer
-                contents:[[NSString stringWithFormat:@"QX%016llx", (unsigned long long)(now ^ QX_MAGIC2)] dataUsingEncoding:NSUTF8StringEncoding]
-                attributes:nil];
-        }
-    });
-
-    // 2. 主线程启动 UI + 注入
+    // 主线程启动 UI + 注入
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [[GYZWCheat shared] boot];
         [NSTimer scheduledTimerWithTimeInterval:3.0 target:[GYZWCheat shared] selector:@selector(statusLoop) userInfo:nil repeats:YES];
     });
 
-    // 3. 延迟校验对方 (QP1 +load 极早, constructor 也极早, 3s 足够双方就位)
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(4.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        if (!g_qxCheckPeer(YES)) {
-            // g_qxCheckPeer 内部已安排 kill
-        }
-    });
 }
