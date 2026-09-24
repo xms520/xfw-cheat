@@ -11,6 +11,10 @@
 #import "GYZWCheat_embedded.h"
 #import "GYZWCheat_ball.h"
 
+#define TAG_BALL   9001
+#define TAG_PANEL  9002
+#define TAG_MASK   9003
+
 typedef bool (*evalString_t)(void *se, const char *script, size_t len, void *ret, const char *name);
 
 static evalString_t g_eval;
