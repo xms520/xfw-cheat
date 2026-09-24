@@ -45,6 +45,7 @@ static UIView *g_panel = nil;
 - (void)onBallPan:(UIPanGestureRecognizer *)p;
 - (void)onBallTap;
 - (void)onKill; - (void)onInv; - (void)onSpd; - (void)onAd; - (void)onClose;
+- (void)onPanelPan:(UIPanGestureRecognizer *)p;
 - (void)statusLoop;
 @end
 
@@ -121,16 +122,19 @@ static BOOL g_whitelist_ok(void) {
 }
 
 // ---------- 引擎注入 ----------
+static BOOL g_injecting = NO;
 - (void)injectTick {
-    if (g_injected) return;
+    if (g_injected || g_injecting) return;
+    g_injecting = YES;
     void *base = g_main_base();
-    if (!base) return;
+    if (!base) { g_injecting = NO; return; }
     if (!g_eval) g_eval = (evalString_t)((uint8_t *)base + 0x15FD7C);
     void **slot = (void **)((uint8_t *)base + 0xDB88B8);
     void *se = slot ? *slot : NULL;
     if (!se) {
         if (g_probeFail++ % 5 == 0) glog(@"se singleton null (engine not init yet)");
         [self setStatus:@"等待游戏引擎…"];
+        g_injecting = NO;
         return;
     }
     if (!g_seOk) {
@@ -138,6 +142,7 @@ static BOOL g_whitelist_ok(void) {
         if (!ok) {
             if (g_probeFail++ % 5 == 0) glog(@"probe fail #%d (thread/isolate not ready)", g_probeFail);
             [self setStatus:@"引擎探测中…"];
+            g_injecting = NO;
             return;
         }
         g_seOk = YES;
@@ -149,7 +154,8 @@ static BOOL g_whitelist_ok(void) {
     const char *cstr = src.UTF8String;
     BOOL ok = g_eval(se, cstr, strlen(cstr), NULL, "GYZW_CHEAT");
     glog(@"inject eval ok=%d len=%zu", ok, strlen(cstr));
-    if (!ok) return;
+    if (!ok) { g_injecting = NO; return; }
+    g_injecting = NO;
     // 验证: cheat.js 写 gyzw_injected.flag
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         NSString *flag = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/gyzw_injected.flag"];
@@ -165,15 +171,32 @@ static BOOL g_whitelist_ok(void) {
     });
 }
 
-// ---------- eval 辅助 ----------
+// ---------- eval 辅助 (带上下文重建自愈) ----------
+static int g_evalFail = 0;
 - (void)evalf:(NSString *)fmt, ... {
     if (!g_seOk || !g_eval) return;
     va_list ap; va_start(ap, fmt);
     NSString *s = [[NSString alloc] initWithFormat:fmt arguments:ap];
     va_end(ap);
     const char *c = s.UTF8String;
-    BOOL ok = g_eval(*((void **)((uint8_t *)g_main_base() + 0xDB88B8)), c, strlen(c), NULL, "GYZW");
+    void **slot = (void **)((uint8_t *)g_main_base() + 0xDB88B8);
+    void *se = slot ? *slot : NULL;
+    if (!se) return;
+    BOOL ok = g_eval(se, c, strlen(c), NULL, "GYZW");
     glog(@"eval '%@' ok=%d", s, ok);
+    if (!ok) {
+        // 连续失败 = JS 上下文被游戏重建(jsb reload) → 重注入
+        if (++g_evalFail >= 2) {
+            glog(@"eval fail x%d -> context reload, re-inject", g_evalFail);
+            g_evalFail = 0;
+            g_injected = NO;
+            g_seOk = NO; // probe 重新验证
+            NSString *flag = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/gyzw_injected.flag"];
+            [[NSFileManager defaultManager] removeItemAtPath:flag error:nil];
+        }
+        return;
+    }
+    g_evalFail = 0;
 }
 
 - (void)syncFlags {
@@ -257,6 +280,16 @@ static void g_addBall(void) {
     g_togglePanel();
 }
 
+- (void)onPanelPan:(UIPanGestureRecognizer *)p {
+    static CGFloat dx, dy;
+    UIView *v = p.view;
+    CGPoint t = [p translationInView:v.superview];
+    if (p.state == UIGestureRecognizerStateBegan) { dx = v.center.x; dy = v.center.y; }
+    else if (p.state == UIGestureRecognizerStateChanged) {
+        v.center = CGPointMake(dx + t.x, dy + t.y);
+    }
+}
+
 // ---------- UI: 面板 ----------
 static UIButton *(g_btns[4]);
 
@@ -306,6 +339,11 @@ static void g_togglePanel(void) {
     panel.layer.borderWidth = 1;
     panel.layer.borderColor = [UIColor colorWithRed:0.25 green:0.5 blue:1 alpha:0.5].CGColor;
     panel.clipsToBounds = YES;
+    panel.userInteractionEnabled = YES;
+
+    // 面板拖动
+    UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:[GYZWCheat shared] action:@selector(onPanelPan:)];
+    [panel addGestureRecognizer:pan];
 
     // 顶部渐变标题
     CAGradientLayer *grad = [CAGradientLayer layer];
@@ -330,10 +368,14 @@ static void g_togglePanel(void) {
     st.font = [UIFont systemFontOfSize:11];
     [panel addSubview:st];
 
-    g_btns[0] = g_rowButton(@"秒杀 OFF", 1, @selector(onKill), 74, pw);
-    g_btns[1] = g_rowButton(@"无敌 OFF", 2, @selector(onInv), 120, pw);
-    g_btns[2] = g_rowButton(@"加速 OFF", 3, @selector(onSpd), 166, pw);
-    g_btns[3] = g_rowButton(@"免广告 OFF", 4, @selector(onAd), 212, pw);
+    g_btns[0] = g_rowButton(g_kill ? @"秒杀 ON" : @"秒杀 OFF", 1, @selector(onKill), 74, pw);
+    g_btns[1] = g_rowButton(g_inv ? @"无敌 ON" : @"无敌 OFF", 2, @selector(onInv), 120, pw);
+    g_btns[2] = g_rowButton([NSString stringWithFormat:@"加速 %@", SPD_NAMES[g_spdIdx]], 3, @selector(onSpd), 166, pw);
+    g_btns[3] = g_rowButton(g_ad ? @"免广告 ON" : @"免广告 OFF", 4, @selector(onAd), 212, pw);
+    g_styleBtn(g_btns[0], g_kill);
+    g_styleBtn(g_btns[1], g_inv);
+    g_styleBtn(g_btns[2], g_spdIdx > 0);
+    g_styleBtn(g_btns[3], g_ad);
     for (int i = 0; i < 4; i++) [panel addSubview:g_btns[i]];
 
     UIButton *close = [UIButton buttonWithType:UIButtonTypeSystem];
@@ -357,21 +399,27 @@ static void g_togglePanel(void) {
 }
 
 // ---------- 按钮事件 ----------
-- (void)onKill { g_kill = !g_kill; g_styleBtn(g_btns[0], g_kill);
+- (void)onKill {
+    g_kill = !g_kill; g_styleBtn(g_btns[0], g_kill);
     [g_btns[0] setTitle:g_kill ? @"秒杀 ON" : @"秒杀 OFF" forState:UIControlStateNormal];
-    [self evalf:@"__GYZW.setFlag('kill',%@)", g_kill ? @"true" : @"false"]; }
-- (void)onInv  { g_inv = !g_inv; g_styleBtn(g_btns[1], g_inv);
+    [self evalf:@"__GYZW.setFlag('kill',%@)", g_kill ? @"true" : @"false"];
+}
+- (void)onInv  {
+    g_inv = !g_inv; g_styleBtn(g_btns[1], g_inv);
     [g_btns[1] setTitle:g_inv ? @"无敌 ON" : @"无敌 OFF" forState:UIControlStateNormal];
-    [self evalf:@"__GYZW.setFlag('inv',%@)", g_inv ? @"true" : @"false"]; }
+    [self evalf:@"__GYZW.setFlag('inv',%@)", g_inv ? @"true" : @"false"];
+}
 - (void)onSpd  {
     g_spdIdx = (g_spdIdx + 1) % 5;
     [g_btns[2] setTitle:[NSString stringWithFormat:@"加速 %@", SPD_NAMES[g_spdIdx]] forState:UIControlStateNormal];
     g_styleBtn(g_btns[2], g_spdIdx > 0);
     [self evalf:@"__GYZW.setFlag('spd',%d)", g_spdIdx];
 }
-- (void)onAd   { g_ad = !g_ad; g_styleBtn(g_btns[3], g_ad);
+- (void)onAd   {
+    g_ad = !g_ad; g_styleBtn(g_btns[3], g_ad);
     [g_btns[3] setTitle:g_ad ? @"免广告 ON" : @"免广告 OFF" forState:UIControlStateNormal];
-    [self evalf:@"__GYZW.setFlag('ad',%@)", g_ad ? @"true" : @"false"]; }
+    [self evalf:@"__GYZW.setFlag('ad',%@)", g_ad ? @"true" : @"false"];
+}
 - (void)onClose {
     UIWindow *w = g_keyWindow();
     UIView *mask = [w viewWithTag:TAG_MASK];
