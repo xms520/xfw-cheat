@@ -167,16 +167,21 @@ static void *g_main_base(void) {
     glog(@"GYZWCheat v3 boot, pid=%d", getpid());
     g_addBall();
     [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(injectTick) userInfo:nil repeats:YES];
-    // 互联锁周期校验 (60s)
-    [NSTimer scheduledTimerWithTimeInterval:60.0 target:self selector:@selector(qxLoop) userInfo:nil repeats:YES];
+    // 互联锁周期校验 + JS 心跳 (5s)
+    [NSTimer scheduledTimerWithTimeInterval:5.0 target:self selector:@selector(qxLoop) userInfo:nil repeats:YES];
 }
 
-// 互联锁周期校验
+// 互联锁周期校验 + JS 心跳注入 (每 5s: QP1 在 -> eval __qp1Alive=true)
 - (void)qxLoop {
     BOOL ok = g_qxCheckPeer(NO);
     if (!ok) {
         glog(@"qx: peer missing -> kill");
         kill(getpid(), SIGKILL);
+        return;
+    }
+    // QP1 在 -> JS 心跳 (cheat.js qxCheck 每秒消费, 45s 未见则摘 patch)
+    if (g_injected) {
+        [self evalf:@"window.__qp1Alive=true;"];
     }
 }
 
@@ -257,7 +262,7 @@ static int g_evalFail = 0;
     [self evalf:@"__GYZW.setFlag('inv',%@)", g_inv ? @"true" : @"false"];
     [self evalf:@"__GYZW.setFlag('spd',%d)", g_spdIdx];
     [self evalf:@"__GYZW.setFlag('ad',%@)", g_ad ? @"true" : @"false"];
-    // 互联锁 JS 通道: QP1 类存在 -> __qp1Alive (cheat.js 的 qxCheck 依赖它)
+    // 互联锁 JS 通道: 注入成功首帧即给心跳 (之后 qxLoop 每 5s 刷)
     BOOL qp1 = (NSClassFromString(@"CardVerification") != nil);
     [self evalf:@"window.__qp1Alive=%@;", qp1 ? @"true" : @"false"];
 }

@@ -136,16 +136,18 @@
   flushStats();
 
   // ---------- 互联锁: QP1 必须在 (JS 层) ----------
-  // native 每秒 eval __qp1Alive=true (QP1 类在时); JS 侧 45s 未见到 = 全部 patch 摘除
+  // native 每 5s eval __qp1Alive=true (QP1 类在时); JS 侧消费, 45s 未心跳 = 摘 patch
+  // patched 复位 -> tick 自动重 patch: 心跳恢复时功能自动复活
   var qxSeen = 0;
-  var qxDead = false;
   function qxCheck() {
-    if (qxDead) return;
-    if (window.__qp1Alive) { qxSeen = Date.now(); window.__qp1Alive = false; return; }
-    if (qxSeen && Date.now() - qxSeen < 30000) return;
-    if (!qxSeen && Date.now() - t0 < 45000) return; // 启动宽限
+    if (window.__qp1Alive) {
+      qxSeen = Date.now();
+      window.__qp1Alive = false;
+      return;
+    }
+    if (qxSeen && Date.now() - qxSeen < 45000) return;
+    if (!qxSeen && Date.now() - t0 < 60000) return; // 启动宽限(injectTick 排队中)
     // QP1 失联: 摘除全部功能 (还原原函数)
-    qxDead = true;
     try {
       var BDM = getMod("BtDmgMgr", "default");
       var BVH = getMod("BattleViewHelper", "BattleViewHelper");
@@ -153,12 +155,12 @@
       if (BDM && BDM.prototype && BDM.prototype.__gyzwW) BDM.prototype.updateTargetHp = BDM.prototype.__gyzwW;
       if (BVH && BVH.__gyzwW) BVH.getBattleSpeed = BVH.__gyzwW;
       if (AH && AH.__gyzwW) AH.isAdFree = AH.__gyzwW;
-      F.kill = F.inv = F.ad = false; F.spd = 0;
+      patched = { dmg: false, spd: false, ad: false };
       wlog("qx: peer lost, patches stripped");
     } catch (e) {}
   }
   var t0 = Date.now();
-  try { setInterval(qxCheck, 1000); } catch (e) {}
+  try { setInterval(qxCheck, 5000); } catch (e) {}
 
   // ---------- native 桥 (重注入时覆盖重建, flags 由 native syncFlags 恢复) ----------
   window.__GYZW = {
